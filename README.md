@@ -1,10 +1,12 @@
 # Gearbox MA/5
 
+**Live demo: https://gear.bombo.fun**
+
 Interactive simulator and animations of the PSA **MA/5** 5-speed manual gearbox (Citroën Saxo / Xsara, Peugeot 106 / 206).
 
 ## MA/5 Shift Lab (web app)
 
-Open `index.html` in a browser (or enable GitHub Pages on this repo). No build step, no dependencies.
+Play it at **https://gear.bombo.fun**, or open `index.html` in a browser. No build step, no dependencies.
 
 You drive the car with the clutch, throttle, brake and an H-pattern lever, and a live cutaway shows what happens inside: synchronisers, blocker rings, dog teeth, the reverse idler and the power flow.
 

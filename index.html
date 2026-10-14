@@ -29,10 +29,10 @@
   --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; color-scheme:dark}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45}
-.app{max-width:1880px;margin:0 auto;padding-inline:16px;padding-block:10px 16px;display:grid;gap:10px}
+.app{max-width:1320px;margin:0 auto;padding-inline:16px;padding-block:14px 28px;display:grid;gap:14px}
 header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
-.brand h1{font-family:var(--font-display);font-weight:700;font-size:1.55rem;margin:0;letter-spacing:.2px;text-wrap:balance}
+.brand h1{font-family:var(--font-display);font-weight:700;font-size:1.75rem;margin:0;letter-spacing:.2px;text-wrap:balance}
 .brand p{margin:0;color:var(--muted);font-size:.92rem}
 .logo{width:44px;height:44px;flex:none}
 .actions{display:flex;flex-wrap:wrap;gap:8px}
@@ -45,41 +45,38 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
 .dot.on{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
 .card{background:var(--surface);border:2px solid var(--line);border-radius:var(--radius)}
 .road{padding:0;overflow:hidden;position:relative}
-#road{display:block;width:100%;height:118px}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 330px 290px;grid-template-areas:"a b c";gap:12px;align-items:start}
-.col{display:grid;gap:12px;min-width:0}
-.colA{grid-area:a}.colB{grid-area:b}.colC{grid-area:c}
-.helpcard{padding:10px 14px 12px}
+#road{display:block;width:100%;height:132px}
+.main{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:14px;align-items:start}
+.col{display:grid;gap:14px;min-width:0}
+.helpcard{padding:12px 16px 16px}
 .tips{display:grid;gap:10px;align-content:center;min-width:0}
-.cutaway{padding:10px 12px 4px;min-width:0}
+.cutaway{padding:12px 12px 6px;min-width:0}
 .cutaway h2,.side h2,.controls h2{font-family:var(--font-display);font-weight:600;font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:2px 6px 8px}
 .boxwrap{overflow-x:auto;max-width:100%}
-#box{display:block;width:100%;aspect-ratio:1040/520;min-width:640px;max-height:calc(100vh - 290px);min-height:300px}
+#box{display:block;width:100%;aspect-ratio:1040/520;min-width:640px}
 .side{display:grid;gap:14px;min-width:0;align-content:start}
-.gauges{padding:8px 10px 4px;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.gauges{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .gauges canvas{width:100%;aspect-ratio:1/1;display:block;max-width:100%}
-.chips{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 10px 10px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 12px}
 .chip{background:var(--surface-2);border-radius:12px;padding:7px 10px;min-width:0}
 .chip b{display:block;font-family:var(--font-display);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .chip span{font-family:var(--font-mono);font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .chip.warn span{color:var(--danger)}
 .bar{height:7px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:5px}
 .bar i{display:block;height:100%;background:var(--ok);border-radius:9px;transition:width .2s}
-.coach{padding:12px;display:grid;grid-template-columns:68px minmax(0,1fr);gap:10px;align-items:start}
-#face{width:68px;height:68px}
+.coach{padding:12px;display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:start}
+#face{width:92px;height:92px}
 .coach h3{font-family:var(--font-display);font-weight:600;font-size:1.12rem;margin:2px 0 4px;text-wrap:balance}
 .coach h3.bad{color:var(--danger)} .coach h3.good{color:var(--ok)}
-.coach p{margin:0;font-size:.88rem;max-width:62ch}
+.coach p{margin:0;font-size:.93rem;max-width:62ch}
 .log{grid-column:1/-1;list-style:none;margin:4px 0 0;padding:8px 0 0;border-top:2px dashed var(--line);display:grid;gap:3px;font-size:.82rem;color:var(--muted)}
 .log li{display:flex;gap:8px;min-width:0}
 .log time{font-family:var(--font-mono);flex:none}
 .log span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.controls{padding:10px 12px 12px;display:grid;gap:6px;justify-items:center}
-.controls h2{text-align:center}
-.pedalbox{display:grid;justify-items:center}
-.pedals{display:flex;gap:10px;align-items:flex-end}
-.pedal{width:76px;display:grid;gap:6px;justify-items:center;user-select:none;touch-action:none;cursor:ns-resize;border-radius:14px;padding:4px}
-.pedal .track{position:relative;width:60px;height:150px;border-radius:16px;background:var(--surface-2);border:2px solid var(--line);overflow:hidden}
+.controls{padding:12px 14px 14px;display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:18px;align-items:stretch}
+.pedals{display:flex;gap:14px;align-items:flex-end}
+.pedal{width:78px;display:grid;gap:6px;justify-items:center;user-select:none;touch-action:none;cursor:ns-resize;border-radius:14px;padding:4px}
+.pedal .track{position:relative;width:62px;height:178px;border-radius:16px;background:var(--surface-2);border:2px solid var(--line);overflow:hidden}
 .pedal .fill{position:absolute;left:0;right:0;top:0;height:0;background:color-mix(in srgb,var(--pc) 28%,transparent)}
 .pedal .pad{position:absolute;left:6px;right:6px;height:34px;border-radius:11px;background:var(--pc);top:4px;box-shadow:0 4px 0 color-mix(in srgb,var(--pc) 60%,#000 25%);display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;font-size:.8rem}
 .pedal .lbl{font-family:var(--font-display);font-weight:600;font-size:.92rem}
@@ -87,22 +84,21 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
 .pedal kbd{font-family:var(--font-mono);font-size:.72rem;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 5px;color:var(--muted)}
 #clutchPedal{--pc:var(--input)} #brakePedal{--pc:var(--danger)} #throttlePedal{--pc:var(--ok)}
 .lever{display:grid;justify-items:center;gap:4px}
-#gate{width:170px;height:204px;touch-action:none;cursor:grab;border-radius:16px}
+#gate{width:190px;height:226px;touch-action:none;cursor:grab;border-radius:16px}
 #gate:active{cursor:grabbing}
 .gearbig{font-family:var(--font-display);font-weight:700;font-size:1rem;color:var(--muted)}
 .gearbig strong{color:var(--accent);font-size:1.5rem;margin-left:4px}
 .help{display:grid;gap:8px;align-content:start;min-width:0;font-size:.9rem}
 .help h2{font-family:var(--font-display);font-weight:600;font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:2px 0 8px}
 .help h2{margin-left:0}
-.keys{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:center;font-size:.85rem}
+.keys{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 10px;align-items:center}
 .keys kbd{font-family:var(--font-mono);font-size:.78rem;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:7px;padding:1px 7px;white-space:nowrap;justify-self:start}
-.tip{background:var(--surface-2);border-radius:12px;padding:8px 10px;font-size:.8rem;color:var(--muted);max-width:68ch;margin:4px 0 0}
+.tip{background:var(--surface-2);border-radius:12px;padding:9px 12px;font-size:.88rem;color:var(--muted);max-width:68ch}
 .tip strong{color:var(--ink)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted);padding:2px 8px 4px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-@media (max-width:1400px){.main{grid-template-columns:minmax(0,1fr) 290px;grid-template-areas:"a c" "b c"}.colB{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr);grid-template-areas:"a" "c" "b"}.colB{grid-template-columns:minmax(0,1fr)}#box{max-height:none}}
-@media (max-width:620px){.pedals{justify-content:center}.pedal{width:72px}.pedal .track{width:56px;height:150px}.brand h1{font-size:1.4rem}#road{height:110px}.coach{grid-template-columns:70px minmax(0,1fr)}#face{width:70px;height:70px}}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.tips{grid-column:1/-1}}
+@media (max-width:620px){.controls{grid-template-columns:minmax(0,1fr)}.pedals{justify-content:center}.pedal{width:72px}.pedal .track{width:56px;height:150px}.brand h1{font-size:1.4rem}#road{height:110px}.coach{grid-template-columns:70px minmax(0,1fr)}#face{width:70px;height:70px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -120,9 +116,10 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
     </div>
   </header>
 
+  <section class="card road" aria-label="Car on the road"><canvas id="road"></canvas></section>
+
   <div class="main">
-    <div class="col colA">
-      <section class="card road" aria-label="Car on the road"><canvas id="road"></canvas></section>
+    <div class="col">
     <section class="card cutaway" aria-label="Gearbox cutaway">
       <h2>Inside the gearbox · live</h2>
       <div class="boxwrap"><canvas id="box"></canvas></div>
@@ -135,8 +132,16 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
         <span><i style="background:var(--accent)"></i>power flow</span>
       </div>
     </section>
+      <section class="card coach" aria-live="polite" aria-label="Coach">
+        <canvas id="face" width="184" height="184"></canvas>
+        <div>
+          <h3 id="msgTitle">Hi! I'm Gearbo.</h3>
+          <p id="msgText">Press <strong>Start engine</strong>, hold the clutch, pick 1st, then let the clutch up slowly while you add a little throttle.</p>
+        </div>
+        <ol class="log" id="log"></ol>
+      </section>
     </div>
-    <div class="col colB">
+    <div class="col">
       <section class="card" aria-label="Gauges">
         <div class="gauges"><canvas id="tacho"></canvas><canvas id="speedo"></canvas></div>
         <div class="chips">
@@ -147,47 +152,40 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
           <div class="chip" style="grid-column:1/-1"><b>Gearbox health</b><span id="vHealth">100 %</span><div class="bar"><i id="healthBar" style="width:100%"></i></div></div>
         </div>
       </section>
-      <section class="card coach" aria-live="polite" aria-label="Coach">
-        <canvas id="face" width="184" height="184"></canvas>
-        <div>
-          <h3 id="msgTitle">Hi! I'm Gearbo.</h3>
-          <p id="msgText">Press <strong>Start engine</strong>, hold the clutch, pick 1st, then let the clutch up slowly while you add a little throttle.</p>
-        </div>
-        <ol class="log" id="log"></ol>
+      <section class="card helpcard" aria-label="How to drive">
+    <div class="help">
+      <h2>How to drive</h2>
+      <div class="keys">
+        <kbd>E</kbd><span>start / stop the engine</span>
+        <kbd>Space</kbd><span>hold to press the clutch (it comes up smoothly when you let go)</span>
+        <kbd>W / ↑</kbd><span>throttle · <kbd>S / ↓</kbd> brake</span>
+        <kbd>1–5 · R · N</kbd><span>move the lever (or drag the knob)</span>
+        <kbd>M</kbd><span>sound on / off</span>
+      </div>
+    </div>
       </section>
     </div>
-    <div class="col colC">
-      <section class="card controls" aria-label="Driver controls">
-        <div class="lever">
-          <h2>Gear lever</h2>
-          <svg id="gate" viewBox="0 0 200 240" tabindex="0" role="application" aria-label="H-pattern gear lever. Drag the knob, or use keys 1 to 5, R and N."></svg>
-          <div class="gearbig">Gear<strong id="gearTxt">N</strong></div>
-        </div>
-        <div class="pedalbox">
-          <h2>Pedals</h2>
+  </div>
+
+  <section class="card controls" aria-label="Driver controls">
+    <div>
+      <h2>Pedals</h2>
       <div class="pedals">
         <div class="pedal" id="clutchPedal" tabindex="0" role="slider" aria-label="Clutch pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">C</div></div><span class="lbl">Clutch</span><span class="val">0 %</span><kbd>Space</kbd></div>
         <div class="pedal" id="brakePedal" tabindex="0" role="slider" aria-label="Brake pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">B</div></div><span class="lbl">Brake</span><span class="val">0 %</span><kbd>S / ↓</kbd></div>
         <div class="pedal" id="throttlePedal" tabindex="0" role="slider" aria-label="Throttle pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">A</div></div><span class="lbl">Throttle</span><span class="val">0 %</span><kbd>W / ↑</kbd></div>
       </div>
-        </div>
-      </section>
-      <section class="card helpcard" aria-label="How to drive">
-        <div class="help">
-          <h2>How to drive</h2>
-          <div class="keys">
-            <kbd>E</kbd><span>start / stop engine</span>
-            <kbd>Space</kbd><span>hold = clutch down</span>
-            <kbd>W / ↑</kbd><span>throttle</span>
-            <kbd>S / ↓</kbd><span>brake</span>
-            <kbd>1–5 R N</kbd><span>gear lever</span>
-            <kbd>M</kbd><span>sound</span>
-          </div>
-          <p class="tip">Mouse only: pedals are sliders, drag them. Try the mistakes too: shift without the clutch, reverse while rolling, 3rd from a standstill.</p>
-        </div>
-      </section>
     </div>
-  </div>
+    <div class="lever">
+      <h2>Gear lever</h2>
+      <svg id="gate" viewBox="0 0 200 240" tabindex="0" role="application" aria-label="H-pattern gear lever. Drag the knob, or use keys 1 to 5, R and N."></svg>
+      <div class="gearbig">Gear<strong id="gearTxt">N</strong></div>
+    </div>
+    <div class="tips">
+      <div class="tip"><strong>Mouse only?</strong> Pedals act like sliders: drag the clutch down, move the lever, then drag the clutch back up slowly. Keyboard keys work at the same time.</div>
+      <div class="tip"><strong>Try the mistakes:</strong> shift without the clutch, pick reverse while rolling, drop the clutch at idle in 3rd, or change down to 1st at 80 km/h. Gearbo will tell you what happened inside.</div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -658,7 +656,7 @@ function radii(g){ const [a,b]=Z[g]; return [D*a/(a+b), D*b/(a+b)]; }
 
 function drawBox(){
   const cv=document.getElementById("box"), {w,h}=fitCanvas(cv), c=cv.getContext("2d");
-  const sc=Math.min(w/1040,h/520); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,w,h); c.setTransform(sc,0,0,sc,(w-1040*sc)/2,(h-520*sc)/2);
+  const sc=w/1040; c.setTransform(sc,0,0,sc,0,0); c.clearRect(0,0,1040,520);
   const eg=engaged(), cl=S.clutch.v, cap=clutchCap();
   // casing
   c.fillStyle=T.casing; rr(c,112,40,800,450,30); c.fill();
