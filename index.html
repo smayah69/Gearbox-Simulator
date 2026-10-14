@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>MA/5 Shift Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: toy-workshop dashboard. Road strip on top, gearbox cutaway + gauges, then the driver's controls (pedals + H-gate) along the bottom like a cockpit. */
+:root{
+  --bg:#e9eef6; --surface:#ffffff; --surface-2:#f4f7fb; --ink:#1f2a3c; --muted:#66758c; --line:#d5deea;
+  --input:#5b8def; --output:#2fb894; --free:#f2bf47; --brass:#d68d32; --accent:#ff7445; --reverse:#a184ee;
+  --danger:#e4486a; --ok:#2fb894; --sky:#cfe3fb; --hill:#bfe3cf; --road:#5d6b80; --casing:#f6f2ff; --steel:#a8b3c4;
+  --font-display:"Fredoka","Nunito","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --radius:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121725; --surface:#1b2233; --surface-2:#222b3f; --ink:#e8edf6; --muted:#9aa7bd; --line:#2e3950;
+  --input:#7aa5ff; --output:#46d1aa; --free:#f5cb62; --brass:#e9a24c; --accent:#ff8a5c; --reverse:#b7a0ff;
+  --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121725; --surface:#1b2233; --surface-2:#222b3f; --ink:#e8edf6; --muted:#9aa7bd; --line:#2e3950;
+  --input:#7aa5ff; --output:#46d1aa; --free:#f5cb62; --brass:#e9a24c; --accent:#ff8a5c; --reverse:#b7a0ff;
+  --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45}
+.app{max-width:1320px;margin:0 auto;padding-inline:16px;padding-block:14px 28px;display:grid;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand h1{font-family:var(--font-display);font-weight:700;font-size:1.75rem;margin:0;letter-spacing:.2px;text-wrap:balance}
+.brand p{margin:0;color:var(--muted);font-size:.92rem}
+.logo{width:44px;height:44px;flex:none}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-family:var(--font-display);font-weight:600;font-size:.95rem;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+button:hover{border-color:var(--muted)}
+button:focus-visible,.pedal:focus-visible,#gate:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary.off{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:var(--radius)}
+.road{padding:0;overflow:hidden;position:relative}
+#road{display:block;width:100%;height:132px}
+.main{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:14px;align-items:start}
+.col{display:grid;gap:14px;min-width:0}
+.helpcard{padding:12px 16px 16px}
+.tips{display:grid;gap:10px;align-content:center;min-width:0}
+.cutaway{padding:12px 12px 6px;min-width:0}
+.cutaway h2,.side h2,.controls h2{font-family:var(--font-display);font-weight:600;font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:2px 6px 8px}
+.boxwrap{overflow-x:auto;max-width:100%}
+#box{display:block;width:100%;aspect-ratio:1040/520;min-width:640px}
+.side{display:grid;gap:14px;min-width:0;align-content:start}
+.gauges{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gauges canvas{width:100%;aspect-ratio:1/1;display:block;max-width:100%}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 12px}
+.chip{background:var(--surface-2);border-radius:12px;padding:7px 10px;min-width:0}
+.chip b{display:block;font-family:var(--font-display);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.chip span{font-family:var(--font-mono);font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.chip.warn span{color:var(--danger)}
+.bar{height:7px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:9px;transition:width .2s}
+.coach{padding:12px;display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:start}
+#face{width:92px;height:92px}
+.coach h3{font-family:var(--font-display);font-weight:600;font-size:1.12rem;margin:2px 0 4px;text-wrap:balance}
+.coach h3.bad{color:var(--danger)} .coach h3.good{color:var(--ok)}
+.coach p{margin:0;font-size:.93rem;max-width:62ch}
+.log{grid-column:1/-1;list-style:none;margin:4px 0 0;padding:8px 0 0;border-top:2px dashed var(--line);display:grid;gap:3px;font-size:.82rem;color:var(--muted)}
+.log li{display:flex;gap:8px;min-width:0}
+.log time{font-family:var(--font-mono);flex:none}
+.log span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.controls{padding:12px 14px 14px;display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:18px;align-items:stretch}
+.pedals{display:flex;gap:14px;align-items:flex-end}
+.pedal{width:78px;display:grid;gap:6px;justify-items:center;user-select:none;touch-action:none;cursor:ns-resize;border-radius:14px;padding:4px}
+.pedal .track{position:relative;width:62px;height:178px;border-radius:16px;background:var(--surface-2);border:2px solid var(--line);overflow:hidden}
+.pedal .fill{position:absolute;left:0;right:0;top:0;height:0;background:color-mix(in srgb,var(--pc) 28%,transparent)}
+.pedal .pad{position:absolute;left:6px;right:6px;height:34px;border-radius:11px;background:var(--pc);top:4px;box-shadow:0 4px 0 color-mix(in srgb,var(--pc) 60%,#000 25%);display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;font-size:.8rem}
+.pedal .lbl{font-family:var(--font-display);font-weight:600;font-size:.92rem}
+.pedal .val{font-family:var(--font-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pedal kbd{font-family:var(--font-mono);font-size:.72rem;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 5px;color:var(--muted)}
+#clutchPedal{--pc:var(--input)} #brakePedal{--pc:var(--danger)} #throttlePedal{--pc:var(--ok)}
+.lever{display:grid;justify-items:center;gap:4px}
+#gate{width:190px;height:226px;touch-action:none;cursor:grab;border-radius:16px}
+#gate:active{cursor:grabbing}
+.gearbig{font-family:var(--font-display);font-weight:700;font-size:1rem;color:var(--muted)}
+.gearbig strong{color:var(--accent);font-size:1.5rem;margin-left:4px}
+.help{display:grid;gap:8px;align-content:start;min-width:0;font-size:.9rem}
+.help h2{font-family:var(--font-display);font-weight:600;font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:2px 0 8px}
+.help h2{margin-left:0}
+.keys{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 10px;align-items:center}
+.keys kbd{font-family:var(--font-mono);font-size:.78rem;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:7px;padding:1px 7px;white-space:nowrap;justify-self:start}
+.tip{background:var(--surface-2);border-radius:12px;padding:9px 12px;font-size:.88rem;color:var(--muted);max-width:68ch}
+.tip strong{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted);padding:2px 8px 4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.tips{grid-column:1/-1}}
+@media (max-width:620px){.controls{grid-template-columns:minmax(0,1fr)}.pedals{justify-content:center}.pedal{width:72px}.pedal .track{width:56px;height:150px}.brand h1{font-size:1.4rem}#road{height:110px}.coach{grid-template-columns:70px minmax(0,1fr)}#face{width:70px;height:70px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="var(--free)"/><g fill="var(--ink)"><circle cx="16" cy="19" r="2.6"/><circle cx="28" cy="19" r="2.6"/></g><path d="M15 27c4 4 10 4 14 0" stroke="var(--ink)" stroke-width="2.6" fill="none" stroke-linecap="round"/><g fill="var(--accent)"><rect x="19" y="-1" width="6" height="7" rx="2"/><rect x="19" y="38" width="6" height="7" rx="2"/><rect x="-1" y="19" width="7" height="6" rx="2"/><rect x="38" y="19" width="7" height="6" rx="2"/></g></svg>
+      <div><h1>MA/5 Shift Lab</h1><p>Citroën Saxo 1.1i · 5-speed MA gearbox · you drive, the gears do the rest</p></div>
+    </div>
+    <div class="actions">
+      <button id="startBtn" class="primary" type="button"><span class="dot" id="engDot"></span><span id="startTxt">Start engine</span></button>
+      <button id="soundBtn" type="button" aria-pressed="false">🔈 Sound off</button>
+      <button id="resetBtn" type="button">Reset</button>
+    </div>
+  </header>
+
+  <section class="card road" aria-label="Car on the road"><canvas id="road"></canvas></section>
+
+  <div class="main">
+    <div class="col">
+    <section class="card cutaway" aria-label="Gearbox cutaway">
+      <h2>Inside the gearbox · live</h2>
+      <div class="boxwrap"><canvas id="box"></canvas></div>
+      <div class="legend">
+        <span><i style="background:var(--input)"></i>input shaft</span>
+        <span><i style="background:var(--output)"></i>output shaft</span>
+        <span><i style="background:var(--free)"></i>free gear</span>
+        <span><i style="background:var(--brass)"></i>blocker ring</span>
+        <span><i style="background:var(--reverse)"></i>reverse train</span>
+        <span><i style="background:var(--accent)"></i>power flow</span>
+      </div>
+    </section>
+      <section class="card coach" aria-live="polite" aria-label="Coach">
+        <canvas id="face" width="184" height="184"></canvas>
+        <div>
+          <h3 id="msgTitle">Hi! I'm Gearbo.</h3>
+          <p id="msgText">Press <strong>Start engine</strong>, hold the clutch, pick 1st, then let the clutch up slowly while you add a little throttle.</p>
+        </div>
+        <ol class="log" id="log"></ol>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card" aria-label="Gauges">
+        <div class="gauges"><canvas id="tacho"></canvas><canvas id="speedo"></canvas></div>
+        <div class="chips">
+          <div class="chip" id="chipClutch"><b>Clutch</b><span id="vClutch">engaged</span></div>
+          <div class="chip" id="chipSync"><b>Synchro</b><span id="vSync">idle</span></div>
+          <div class="chip"><b>Input / output</b><span id="vShafts">0 / 0 rpm</span></div>
+          <div class="chip" id="chipTemp"><b>Clutch temp</b><span id="vTemp">40 °C</span></div>
+          <div class="chip" style="grid-column:1/-1"><b>Gearbox health</b><span id="vHealth">100 %</span><div class="bar"><i id="healthBar" style="width:100%"></i></div></div>
+        </div>
+      </section>
+      <section class="card helpcard" aria-label="How to drive">
+    <div class="help">
+      <h2>How to drive</h2>
+      <div class="keys">
+        <kbd>E</kbd><span>start / stop the engine</span>
+        <kbd>Space</kbd><span>hold to press the clutch (it comes up smoothly when you let go)</span>
+        <kbd>W / ↑</kbd><span>throttle · <kbd>S / ↓</kbd> brake</span>
+        <kbd>1–5 · R · N</kbd><span>move the lever (or drag the knob)</span>
+        <kbd>M</kbd><span>sound on / off</span>
+      </div>
+    </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card controls" aria-label="Driver controls">
+    <div>
+      <h2>Pedals</h2>
+      <div class="pedals">
+        <div class="pedal" id="clutchPedal" tabindex="0" role="slider" aria-label="Clutch pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">C</div></div><span class="lbl">Clutch</span><span class="val">0 %</span><kbd>Space</kbd></div>
+        <div class="pedal" id="brakePedal" tabindex="0" role="slider" aria-label="Brake pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">B</div></div><span class="lbl">Brake</span><span class="val">0 %</span><kbd>S / ↓</kbd></div>
+        <div class="pedal" id="throttlePedal" tabindex="0" role="slider" aria-label="Throttle pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">A</div></div><span class="lbl">Throttle</span><span class="val">0 %</span><kbd>W / ↑</kbd></div>
+      </div>
+    </div>
+    <div class="lever">
+      <h2>Gear lever</h2>
+      <svg id="gate" viewBox="0 0 200 240" tabindex="0" role="application" aria-label="H-pattern gear lever. Drag the knob, or use keys 1 to 5, R and N."></svg>
+      <div class="gearbig">Gear<strong id="gearTxt">N</strong></div>
+    </div>
+    <div class="tips">
+      <div class="tip"><strong>Mouse only?</strong> Pedals act like sliders: drag the clutch down, move the lever, then drag the clutch back up slowly. Keyboard keys work at the same time.</div>
+      <div class="tip"><strong>Try the mistakes:</strong> shift without the clutch, pick reverse while rolling, drop the clutch at idle in 3rd, or change down to 1st at 80 km/h. Gearbo will tell you what happened inside.</div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+// ================= constants (Saxo 1.1i, MA/5N) =================
+const Z = {1:[12,41],2:[21,38],3:[32,41],4:[40,39],5:[43,33]};
+const RATIO = {1:41/12,2:38/21,3:41/32,4:39/40,5:33/43,R:-43/12};
+const FD = 60/14, RW = 1.67/(2*Math.PI), MASS = 960, G = 9.81;
+const JE = 0.13, JI = 0.012, CDA = 0.61, RHO = 1.2, CRR = 0.012, BMAX = 7500;
+const CLUTCH_CAP = 170, SYNC_CAP = 14, LIMIT = 6300;
+const RPM = w => w*60/(2*Math.PI), RAD = r => r*2*Math.PI/60;
+const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
+const ss = x => { x = clamp(x,0,1); return x*x*(3-2*x); };
+const TQ = [[0,0],[400,30],[800,62],[1500,74],[2500,84],[3400,90],[4500,86],[5500,76],[6300,64],[7200,45]];
+function tmax(r){ if (r<=0) return 0; for (let i=1;i<TQ.length;i++){ if (r<=TQ[i][0]){ const [a,ta]=TQ[i-1],[b,tb]=TQ[i]; return ta+(tb-ta)*(r-a)/(b-a);} } return 45; }
+// units: A = 1/2, B = 3/4, C = 5th (all on the output shaft)
+const UNITS = { A:{gears:{"-1":1,"1":2}}, B:{gears:{"-1":3,"1":4}}, C:{gears:{"-1":5}} };
+const PLANE_UNIT = {"-1":"A","0":"B","1":"C"};
+
+// ================= state =================
+let S;
+function fresh(){
+  return {
+    we:0, wi:0, v:0, engineOn:false, cranking:0, dist:0,
+    clutch:{v:0,key:false,manual:false}, thr:{v:0,key:false,manual:false}, brk:{v:0,key:false,manual:false},
+    units:{A:{s:0,st:"free",bt:0},B:{s:0,st:"free",bt:0},C:{s:0,st:"free",bt:0}},
+    ri:0, riSt:"free", riBt:0,
+    lever:{x:0, y:0, drag:false, kb:null, kbT:0, lockR:false},
+    Tc:0, temp:40, health:100, grinding:0, grindWhy:"", syncing:null, syncT:0, overrevT:-9, limT:0, lugT:0,
+    engagedSince:0, lastGear:"N", time:0, shake:0, puffs:[], sparks:[], stallT:-9,
+  };
+}
+S = fresh();
+
+function gearOf(unitKey, side){ return UNITS[unitKey].gears[String(side)]; }
+function engaged(){
+  for (const k of ["A","B","C"]){ const u=S.units[k]; if (u.st==="engaged") return {gear:gearOf(k,Math.sign(u.s)), unit:k}; }
+  if (S.riSt==="engaged") return {gear:"R", unit:"R"};
+  return null;
+}
+function clutchCap(){ return CLUTCH_CAP*(1-ss((S.clutch.v-0.2)/0.55)); }
+
+// ================= coach / messages =================
+const msgTitle=document.getElementById("msgTitle"), msgText=document.getElementById("msgText"), logEl=document.getElementById("log");
+const lastMsg={};
+function say(key, title, text, mood="info", cool=3){
+  const now=S.time;
+  if (lastMsg[key]!==undefined && now-lastMsg[key]<cool) return;
+  lastMsg[key]=now;
+  msgTitle.textContent=title; msgText.innerHTML=text;
+  msgTitle.className = mood==="bad"?"bad":mood==="good"?"good":"";
+  const li=document.createElement("li");
+  const m=Math.floor(now/60), s=Math.floor(now%60);
+  li.innerHTML=`<time>${m}:${String(s).padStart(2,"0")}</time><span></span>`;
+  li.querySelector("span").textContent=title;
+  logEl.prepend(li); while(logEl.children.length>4) logEl.lastChild.remove();
+  faceMoodHold = {bad:"ouch",good:"happy",info:null}[mood]; faceHoldT = 2.2;
+}
+
+// ================= controls =================
+function pedalSetup(id, obj){
+  const el=document.getElementById(id), track=el.querySelector(".track");
+  let dragging=false;
+  const set=(e)=>{ const r=track.getBoundingClientRect(); obj.v=clamp((e.clientY-r.top-20)/(r.height-40),0,1); obj.manual=true; obj.key=false; };
+  el.addEventListener("pointerdown",e=>{dragging=true;el.setPointerCapture(e.pointerId);set(e);e.preventDefault();});
+  el.addEventListener("pointermove",e=>{ if(dragging) set(e); });
+  el.addEventListener("pointerup",()=>dragging=false);
+  el.addEventListener("pointercancel",()=>dragging=false);
+  el.addEventListener("keydown",e=>{ if(e.key==="ArrowUp"&&e.altKey){} });
+  return el;
+}
+const pedalEls={clutch:pedalSetup("clutchPedal",S.clutch), brk:pedalSetup("brakePedal",S.brk), thr:pedalSetup("throttlePedal",S.thr)};
+function rebindPedals(){ // after reset, objects are new
+  for (const [k,id] of [["clutch","clutchPedal"],["brk","brakePedal"],["thr","throttlePedal"]]){
+    const el=document.getElementById(id), clone=el.cloneNode(true); el.replaceWith(clone); pedalEls[k]=pedalSetup(id,S[k]);
+  }
+}
+function pedalUI(){
+  for (const k of ["clutch","brk","thr"]){
+    const el=pedalEls[k], v=S[k].v, track=el.querySelector(".track"), h=track.clientHeight;
+    el.querySelector(".pad").style.top=(4+v*(h-46))+"px";
+    el.querySelector(".fill").style.height=(v*100)+"%";
+    el.querySelector(".val").textContent=Math.round(v*100)+" %";
+    el.setAttribute("aria-valuenow",Math.round(v*100));
+  }
+}
+function pedalKeys(dt){
+  const c=S.clutch;
+  if (c.key) c.v=Math.min(1,c.v+6*dt); else if(!c.manual) c.v=Math.max(0,c.v-0.8*dt);
+  for (const p of [S.thr,S.brk]){ if(p.key) p.v=Math.min(1,p.v+2.4*dt); else if(!p.manual) p.v=Math.max(0,p.v-4*dt); }
+}
+
+// ---- lever / H-gate ----
+const gate=document.getElementById("gate");
+const GX=x=>100+x*50, GY=y=>120+y*78;
+gate.innerHTML=`
+  <rect x="4" y="4" width="192" height="232" rx="22" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/>
+  <g stroke="var(--line)" stroke-width="16" stroke-linecap="round" fill="none">
+    <path d="M50 120 H150 M50 42 V198 M100 42 V198 M150 42 V198"/></g>
+  <g stroke="var(--surface)" stroke-width="8" stroke-linecap="round" fill="none" opacity=".9">
+    <path d="M50 120 H150 M50 42 V198 M100 42 V198 M150 42 V198"/></g>
+  <g font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="17" fill="var(--muted)" text-anchor="middle">
+    <text x="50" y="27">1</text><text x="50" y="226">2</text><text x="100" y="27">3</text><text x="100" y="226">4</text><text x="150" y="27">5</text><text x="150" y="226">R</text></g>
+  <line id="stick" x1="100" y1="120" x2="100" y2="120" stroke="var(--muted)" stroke-width="5" stroke-linecap="round" opacity=".5"/>
+  <circle id="knob" cx="100" cy="120" r="17" fill="var(--accent)" stroke="var(--surface)" stroke-width="3"/>
+  <circle id="knobHi" cx="94" cy="114" r="5" fill="#fff" opacity=".55"/>`;
+const knob=gate.querySelector("#knob"), knobHi=gate.querySelector("#knobHi"), stick=gate.querySelector("#stick");
+function gatePoint(e){ const r=gate.getBoundingClientRect(); return {x:((e.clientX-r.left)/r.width*200-100)/50, y:((e.clientY-r.top)/r.height*240-120)/78}; }
+let leverPtr=null;
+gate.addEventListener("pointerdown",e=>{ gate.setPointerCapture(e.pointerId); S.lever.drag=true; S.lever.kb=null; leverPtr=gatePoint(e); e.preventDefault(); });
+gate.addEventListener("pointermove",e=>{ if(S.lever.drag) leverPtr=gatePoint(e); });
+const leverUp=()=>{ if(!S.lever.drag) return; S.lever.drag=false; leverPtr=null;
+  const eg=engaged(); if (eg){ S.lever.y = Math.sign(actualY()); } else { S.lever.y=0; S.lever.kb={x:0,y:0,rest:true}; } };
+gate.addEventListener("pointerup",leverUp); gate.addEventListener("pointercancel",leverUp);
+
+function actualY(){ // the lever's real position follows the sleeve / idler of the plane it sits in
+  const pl=Math.round(S.lever.x);
+  if (Math.abs(S.lever.x-pl)>0.15) return 0;
+  if (pl===1 && (S.ri>0.001 || S.lever.y>0.02) && S.units.C.s>=-0.001) return S.ri;
+  return S.units[PLANE_UNIT[String(pl)]].s;
+}
+function inRail(){ return Math.abs(actualY())<0.12; }
+function leverStep(dt){
+  const L=S.lever;
+  if (L.drag && leverPtr){
+    if (inRail()) { const nx=clamp(leverPtr.x,-1,1); L.x += clamp(nx-L.x,-8*dt,8*dt); }
+    const pl=Math.round(L.x);
+    L.y = Math.abs(L.x-pl)<0.15 ? clamp(leverPtr.y,-1,1) : 0;
+  } else if (L.kb){
+    const t=L.kb; L.kbT+=dt;
+    const pl=Math.round(L.x);
+    if (Math.abs(L.x-t.x)>0.02){
+      if (Math.abs(actualY())>0.12){ L.y=0; }
+      else { L.y=0; L.x += clamp(t.x-L.x,-6*dt,6*dt); if (Math.abs(L.x-t.x)<0.02) L.x=t.x; }
+    } else {
+      if (t.y!==0 && Math.sign(actualY())!==0 && Math.sign(actualY())!==Math.sign(t.y)) L.y=0;
+      else L.y += clamp(t.y-L.y,-7*dt,7*dt);
+      if (t.rest && Math.abs(L.y)<0.01 && Math.abs(L.x)<0.01) L.kb=null;
+    }
+    if ((S.grinding>0.9) && t.y!==0){ // give up after a second of grinding
+      say("abort","Lever popped back to neutral","You kept pushing while it ground. Press the clutch fully and try again.","bad",2);
+      L.kb={x:0,y:0,rest:true}; L.y=0;
+    }
+  } else if (!engaged() && Math.abs(L.y)<0.02 && Math.abs(L.x)>0.001 && inRail()){
+    L.x += clamp(-L.x,-4*dt,4*dt); // spring back to the 3/4 plane
+  }
+  // 5th → reverse lockout
+  if (S.units.C.st==="engaged") L.lockR=true;
+  if (L.x<0.5) L.lockR=false;
+  if (L.lockR && Math.round(L.x)===1 && L.y>0.1 && S.units.C.s>=-0.05){
+    L.y=0.08; say("lockR","5th → reverse lockout","The MA gate stops you going straight from 5th into reverse. Move the lever back to the centre plane first.","info",3);
+  }
+}
+function selectGear(g){
+  const map={1:[-1,-1],2:[-1,1],3:[0,-1],4:[0,1],5:[1,-1],R:[1,1],N:[0,0]};
+  const [x,y]=map[g]; S.lever.kb={x,y,rest:g==="N"}; S.lever.kbT=0; S.lever.drag=false;
+}
+function leverUI(){
+  const ay=actualY(); let jx=0,jy=0;
+  if (S.grinding>0.05 && !reduceMotion){ jx=(Math.random()-0.5)*4; jy=(Math.random()-0.5)*4; }
+  const cx=GX(S.lever.x)+jx, cy=GY(ay)+jy;
+  knob.setAttribute("cx",cx); knob.setAttribute("cy",cy); knobHi.setAttribute("cx",cx-6); knobHi.setAttribute("cy",cy-6);
+  stick.setAttribute("x2",cx); stick.setAttribute("y2",cy);
+}
+
+// ---- keyboard ----
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+addEventListener("keydown",e=>{
+  if (e.target && (e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")) return;
+  const k=e.key.toLowerCase();
+  if (k===" "||k==="c"){ S.clutch.key=true; S.clutch.manual=false; e.preventDefault(); }
+  else if (k==="w"||k==="arrowup"){ S.thr.key=true; S.thr.manual=false; e.preventDefault(); }
+  else if (k==="s"||k==="arrowdown"){ S.brk.key=true; S.brk.manual=false; e.preventDefault(); }
+  else if ("12345".includes(k) && k.length===1){ selectGear(+k); }
+  else if (k==="r"){ selectGear("R"); }
+  else if (k==="n"||k==="0"){ selectGear("N"); }
+  else if (k==="e" && !e.repeat){ toggleEngine(); }
+  else if (k==="m" && !e.repeat){ toggleSound(); }
+});
+addEventListener("keyup",e=>{
+  const k=e.key.toLowerCase();
+  if (k===" "||k==="c") S.clutch.key=false;
+  else if (k==="w"||k==="arrowup") S.thr.key=false;
+  else if (k==="s"||k==="arrowdown") S.brk.key=false;
+});
+addEventListener("blur",()=>{ S.clutch.key=S.thr.key=S.brk.key=false; });
+
+// ---- engine start ----
+const startBtn=document.getElementById("startBtn"), startTxt=document.getElementById("startTxt"), engDot=document.getElementById("engDot");
+function toggleEngine(){
+  if (S.engineOn || S.cranking>0){ S.engineOn=false; S.cranking=0; say("off","Engine off","Turn it back on with Start or E.","info",0.5); return; }
+  const eg=engaged();
+  if (eg && clutchCap()>20){ say("startgear","Clutch first!","You're in gear. Starting now would jerk the car forward on the starter. Press the clutch (or pick neutral), then start.","bad",1); return; }
+  S.cranking=0.75; say("crank","Cranking…","Starter motor spinning the engine up.","info",0.5);
+}
+startBtn.addEventListener("click",toggleEngine);
+document.getElementById("resetBtn").addEventListener("click",()=>{ const snd=S.sound; S=fresh(); S.sound=snd; rebindPedals(); logEl.innerHTML=""; say("reset","Fresh gearbox","Everything reset. Start the engine to drive again.","good",0); });
+
+// ================= physics =================
+function fres(v){ return CRR*MASS*G*clamp(v/0.3,-1,1) + 0.5*RHO*CDA*v*Math.abs(v); }
+function fbrake(v){ return S.brk.v*BMAX*clamp(v/0.3,-1,1); }
+function dragI(w){ return 0.6*clamp(w/2,-1,1)+0.004*w; }
+
+function stepUnits(dt){
+  const L=S.lever, pl=Math.round(L.x), onPlane=Math.abs(L.x-pl)<0.15;
+  const wo = S.v/RW*FD;
+  S.syncing=null;
+  for (const k of ["A","B","C"]){
+    const u=S.units[k];
+    let tgt = (onPlane && PLANE_UNIT[String(pl)]===k) ? L.y : 0;
+    if (k==="C" && tgt>0) tgt=0; // back of the right plane is reverse, not this sleeve
+    if (k==="C" && S.ri>0.01) tgt=0;
+    if (u.st==="engaged"){
+      if (tgt*Math.sign(u.s)<0.5){
+        if (Math.abs(S.Tc)<30 || clutchCap()<5){ u.st="free"; u.s-=Math.sign(u.s)*0.12; }
+        else say("loaded","Stuck in gear","The dog teeth are carrying engine torque, so the sleeve won't slide out. Press the clutch or lift off the throttle.","bad",3);
+      }
+      continue;
+    }
+    const d = Math.sign(tgt)||Math.sign(u.s);
+    if (Math.abs(tgt)>Math.abs(u.s)+1e-3 && d!==0 && (Math.sign(u.s)===d||u.s===0)){
+      let next=u.s+d*6*dt;
+      const g=gearOf(k,d); if (!g){ u.s=0; continue; }
+      const diff=S.wi-wo*RATIO[g];
+      if (Math.abs(next)>=0.35){
+        S.syncing={unit:k,gear:g,diff,side:d}; // cone friction acts from ring contact until the dogs mesh
+        if (Math.abs(u.s)<0.36 && Math.abs(diff)>2.5){
+          u.s=d*0.35; if(u.st!=="blocked"){u.st="blocked"; u.bt=0; S.syncT=0;}
+          u.bt+=dt;
+          continue;
+        }
+      }
+      if (u.st==="blocked") u.st="free"; // ring unblocked: speeds match
+      u.s=clamp(next,-1,1);
+      if (Math.abs(u.s)>=0.9){
+        if (Math.abs(diff)<4){
+          u.s=d; u.st="engaged";
+          if (clutchCap()>12) say("clutchless","Clean clutchless shift into "+g+ordS(g)+"!","Engine speed already matched the gear, so the synchro had nothing to do. Nice rev-matching.","good",4);
+          else if (u.bt>0) say("synced",g+ordS(g)+" engaged",`The synchro matched speeds in ${Math.max(10,Math.round(u.bt*1000))} ms, then the sleeve slid onto the dog teeth.`,"good",1.5);
+          else say("synced",g+ordS(g)+" engaged","Nothing was turning, so the sleeve slid straight onto the dog teeth.","good",1.5);
+          S.wi = wo*RATIO[g]; u.bt=0;
+        } else { u.s=d*0.35; u.st="blocked"; }
+      }
+    } else {
+      // moving back toward neutral or toward the target inside the free zone
+      u.st = "free";
+      u.s += clamp(tgt-u.s,-6*dt,6*dt);
+      if (Math.abs(u.s)<0.35) u.bt=0;
+    }
+  }
+  // reverse idler (no synchroniser)
+  let tR = (onPlane && pl===1 && L.y>0 && S.units.C.s>=-0.001) ? L.y : 0;
+  if (S.riSt==="engaged"){
+    if (tR<0.5){ if (Math.abs(S.Tc)<30 || clutchCap()<5){ S.riSt="free"; S.ri=0.85; } else say("loadedR","Stuck in reverse","The idler is carrying torque. Press the clutch or lift off the throttle.","bad",3); }
+  } else if (tR>S.ri+1e-3){
+    let next=S.ri+4*dt;
+    const inputSpin=Math.abs(RPM(S.wi)), rolling=Math.abs(S.v);
+    if (next>=0.4 && S.ri<0.41 && (inputSpin>60 || rolling>0.25)){
+      S.ri=0.4; S.riSt="blocked"; S.riBt+=dt;
+      if (rolling>0.25) S.grindWhy="rolling"; else S.grindWhy= clutchCap()>12 ? "revclutch":"revspin";
+    } else {
+      S.riSt="free"; S.ri=Math.min(1,next);
+      if (S.ri>=0.95){ S.ri=1; S.riSt="engaged"; S.wi=0; say("rev","Reverse engaged","The idler slid into mesh with the input reverse gear and the teeth on the 1/2 sleeve. Three gears in a row: the car will go backwards.","good",2); }
+    }
+  } else { S.riSt="free"; S.riBt=0; S.ri += clamp(tR-S.ri,-4*dt,4*dt); }
+}
+function ordS(g){ return g===1?"st":g===2?"nd":g===3?"rd":"th"; }
+
+function physics(dt){
+  S.time+=dt;
+  stepUnits(dt);
+  const eg=engaged();
+  const cap=clutchCap();
+  // engine torque
+  const rpm=RPM(S.we);
+  let thr=S.thr.v;
+  if (S.engineOn){
+    const idle = clamp(0.16+(850-rpm)*0.0016,0,0.6);
+    thr=Math.max(thr,idle);
+    if (rpm>LIMIT) thr=0;
+  }
+  let Te=0;
+  const fric = 5+0.0028*rpm+(1-S.thr.v)*0.0025*rpm;
+  if (S.engineOn) Te = thr*tmax(rpm) - fric;
+  else Te = -fric*clamp(S.we/3,0,1);
+  if (S.cranking>0){ Te += 45; }
+  // downstream
+  let Jd, Tload, Tsync=0, rg=null;
+  if (eg){
+    rg=RATIO[eg.gear];
+    const k=FD*rg;
+    Jd = JI + MASS*RW*RW/(k*k);
+    Tload = -(fres(S.v)+fbrake(S.v))*RW/k;
+  } else {
+    Jd=JI; Tload=-dragI(S.wi);
+    if (S.syncing){
+      const wo=S.v/RW*FD, tgt=wo*RATIO[S.syncing.gear];
+      const locked = cap>1 && Math.abs(S.we-S.wi)<1;
+      const Jeff = JI + (locked?JE:0);
+      Tsync = clamp(Jeff*(tgt-S.wi)/dt, -SYNC_CAP, SYNC_CAP);
+      Tload += Tsync;
+    }
+  }
+  // implicit clutch torque
+  let Tc = (S.we - S.wi + dt*(Te/JE - Tload/Jd)) / (dt*(1/JE+1/Jd));
+  Tc = clamp(Tc,-cap,cap);
+  S.Tc=Tc;
+  S.we += dt*(Te-Tc)/JE;
+  S.wi += dt*(Tc+Tload)/Jd;
+  if (S.we<0) S.we=0;
+  // car
+  if (eg){ S.v = S.wi*RW/(FD*rg); }
+  else {
+    let F = -fres(S.v) - fbrake(S.v);
+    if (S.syncing) F += -Tsync*RATIO[S.syncing.gear]*FD/RW;
+    S.v += dt*F/MASS;
+  }
+  S.dist += S.v*dt;
+  // clutch heat
+  const slipP = Math.abs(Tc*(S.we-S.wi));
+  S.temp += dt*(slipP/900 - (S.temp-40)*0.035);
+  // cranking
+  if (S.cranking>0){ S.cranking-=dt; if (RPM(S.we)>420){ S.engineOn=true; S.cranking=0; say("started","Engine running","Idling at about 850 rpm. Hold the clutch and pick 1st.","good",1); } else if (S.cranking<=0){ say("nocrank","Won't turn over","The starter couldn't spin the engine: something is holding it (in gear with the clutch up?). Press the clutch and try again.","bad",1); } }
+  // stall
+  const r2=RPM(S.we);
+  if (S.engineOn && r2<360){
+    S.engineOn=false; S.stallT=S.time; S.shake=0.6;
+    const g=eg?eg.gear:null;
+    if (g && Math.abs(S.v)<1.0 && (g===3||g===4||g===5)) say("stall","Stalled in "+g+ordS(g)+"!","Pulling away in "+g+ordS(g)+" asks the engine to move the car with very little gear reduction. Use 1st: it multiplies torque 3.4 times.","bad",1);
+    else if (g && S.brk.v>0.3) say("stall","Stalled!","You braked to a stop still in gear with the clutch up, so the wheels dragged the engine to a halt. Press the clutch before you stop.","bad",1);
+    else if (g) say("stall","Stalled!","The clutch bit too quickly for the engine speed, so the car's load stopped the engine. Release the clutch more slowly through the bite point and add a little throttle.","bad",1);
+    else say("stall","Engine stopped","Engine speed fell too low. Press Start to restart.","bad",1);
+    S.health=Math.max(0,S.health-1);
+  }
+  // grinding
+  let grind=false;
+  if (S.syncing && !eg){
+    S.syncT+=dt;
+    const u=S.units[S.syncing.unit];
+    if (u.st==="blocked" && u.bt>0.15 && cap>12){ grind=true; S.grindWhy="noclutch"; }
+  }
+  if (S.riSt==="blocked") grind=true;
+  if (grind){ S.grinding=Math.min(2,S.grinding+dt); S.health=Math.max(0,S.health-dt*(S.riSt==="blocked"?5:3.5)); }
+  else S.grinding=Math.max(0,S.grinding-dt*3);
+}
+
+// ================= monitors (messages that need context) =================
+let lastGrindMsg=-9;
+function monitors(dt){
+  const eg=engaged(), rpm=RPM(S.we), kmh=S.v*3.6;
+  if (S.grinding>0.05){
+    if (S.grindWhy==="noclutch" && S.syncing){
+      const g=S.syncing?S.syncing.gear:"";
+      say("grind","KRRRRK! Grinding into "+g+ordS(g),"The clutch isn't pressed, so the synchro would have to slow down the whole engine and flywheel too. It can't, the blocker ring stays in the way and the sleeve chamfers grind on it. Press the clutch fully, then shift.","bad",2.5);
+    } else if (S.grindWhy==="rolling") say("grindR","CRUNCH! Reverse while rolling","Reverse has no synchroniser. With the car still moving, the idler's straight teeth smash against the spinning teeth on the 1/2 sleeve. Stop completely first.","bad",2.5);
+    else if (S.grindWhy==="revclutch") say("grindR2","CRUNCH! Reverse with the clutch up","The input shaft is spinning with the engine, and reverse has no synchro to stop it. Press the clutch, wait a second, then select R.","bad",2.5);
+    else if (S.grindWhy==="revspin") say("grindR3","Crunch… wait a moment","The clutch is pressed, but the input shaft is still spinning down. Give it a second, or briefly touch a forward gear to stop it, then select R.","bad",2.5);
+  }
+  const forced = eg && clutchCap()>60 && RPM(Math.abs(S.wi))>6900 && Math.abs(S.we-S.wi)>RAD(300);
+  if ((rpm>6900 || forced) && S.overrevT<S.time-3){ S.overrevT=S.time; S.health=Math.max(0,S.health-8);
+    say("overrev","Over-rev! "+(eg?(eg.gear==="R"?"Reverse":eg.gear+ordS(eg.gear)):"")+" at "+Math.round(Math.abs(kmh))+" km/h","In this gear the wheels turn the input shaft at "+Math.round(RPM(Math.abs(S.wi))).toLocaleString("en")+" rpm, far past the 6,300 rpm red line. Letting the clutch up drags the engine toward that speed and the car lurches. The synchro happily matched the input shaft; the engine is what can't take it. Pick a gear that suits your speed.","bad",3); S.shake=0.4; }
+  if (S.engineOn && rpm>LIMIT-50 && S.thr.v>0.5){ S.limT+=dt; if (S.limT>0.6) say("limiter","Bouncing off the limiter","6,300 rpm is the fuel cut-off. Press the clutch and shift up.","info",5); } else S.limT=0;
+  if (eg && eg.gear!=="R" && S.engineOn && clutchCap()>150 && rpm<1100 && S.thr.v>0.6 && Math.abs(S.we-S.wi)<2){ S.lugT+=dt; if(S.lugT>1.2) say("lug","Lugging the engine","Full throttle below 1,100 rpm strains the engine and gearbox. Change down a gear.","info",6); } else S.lugT=0;
+  if (S.temp>230) say("hot","Clutch is smoking","You've been slipping the clutch for a long time. Let it fully up or fully down; the friction plate is near "+Math.round(S.temp)+" °C.","bad",6);
+  if (!S.engineOn && S.cranking<=0 && S.thr.v>0.5 && S.time-S.stallT>1.5) say("thrOff","Engine is off","Throttle does nothing without the engine running. Press Start (E).","info",6);
+  if (eg && eg.gear===1 && kmh>3 && S.lastGear!=="1") {}
+  const gname = eg ? String(eg.gear) : "N";
+  if (gname!==S.lastGear){ S.lastGear=gname; }
+  if (eg && eg.gear==="R" && S.v>0.5){}
+}
+
+// ================= audio =================
+let AC=null, au={};
+const soundBtn=document.getElementById("soundBtn");
+function initAudio(){
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    const master=AC.createGain(); master.gain.value=0.6; master.connect(AC.destination);
+    const lp=AC.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=600; lp.Q.value=4;
+    const eg=AC.createGain(); eg.gain.value=0; lp.connect(eg); eg.connect(master);
+    const o1=AC.createOscillator(); o1.type="sawtooth"; const o2=AC.createOscillator(); o2.type="square";
+    const g2=AC.createGain(); g2.gain.value=0.5; o1.connect(lp); o2.connect(g2); g2.connect(lp); o1.start(); o2.start();
+    const len=AC.sampleRate*1, buf=AC.createBuffer(1,len,AC.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    const nz=AC.createBufferSource(); nz.buffer=buf; nz.loop=true;
+    const bp=AC.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=2600; bp.Q.value=2.5;
+    const gg=AC.createGain(); gg.gain.value=0; nz.connect(bp); bp.connect(gg); gg.connect(master); nz.start();
+    const st=AC.createOscillator(); st.type="square"; st.frequency.value=40; const sg=AC.createGain(); sg.gain.value=0; st.connect(sg); sg.connect(lp); st.start();
+    au={master,lp,eg,o1,o2,gg,bp,sg,st};
+  }catch(e){ AC=null; }
+}
+function toggleSound(){
+  if (!AC) initAudio();
+  if (!AC) { soundBtn.textContent="🔇 No audio"; return; }
+  S.sound=!S.sound;
+  if (S.sound) AC.resume();
+  au.master.gain.setTargetAtTime(S.sound?0.6:0, AC.currentTime, 0.05);
+  soundBtn.textContent = S.sound ? "🔊 Sound on" : "🔈 Sound off";
+  soundBtn.setAttribute("aria-pressed", String(!!S.sound));
+}
+soundBtn.addEventListener("click",toggleSound);
+function audioTick(){
+  if (!AC || !S.sound) return;
+  const t=AC.currentTime, rpm=RPM(S.we), f=Math.max(8,rpm/30);
+  au.o1.frequency.setTargetAtTime(f,t,0.02); au.o2.frequency.setTargetAtTime(f/2,t,0.02);
+  au.lp.frequency.setTargetAtTime(300+S.thr.v*1600+rpm*0.12,t,0.05);
+  const on = (S.engineOn||rpm>100) ? (0.06+0.14*S.thr.v)*clamp(rpm/600,0,1) : 0;
+  au.eg.gain.setTargetAtTime(on,t,0.05);
+  au.sg.gain.setTargetAtTime(S.cranking>0?0.12:0,t,0.03); au.st.frequency.setTargetAtTime(28+Math.random()*10,t,0.02);
+  const gr = S.grinding>0.05 ? 0.18+0.14*Math.random() : 0;
+  au.gg.gain.setTargetAtTime(gr,t,0.015); au.bp.frequency.setTargetAtTime(1800+Math.random()*1800,t,0.01);
+}
+
+// ================= drawing =================
+let T={};
+function readTokens(){
+  const cs=getComputedStyle(document.documentElement);
+  for (const k of ["bg","surface","surface-2","ink","muted","line","input","output","free","brass","accent","reverse","danger","ok","sky","hill","road","casing","steel"]) T[k]=cs.getPropertyValue("--"+k).trim();
+}
+readTokens();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",readTokens);
+new MutationObserver(readTokens).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+function hex2rgb(h){ h=h.replace("#",""); if(h.length===3) h=h.split("").map(c=>c+c).join(""); const n=parseInt(h,16); return [n>>16&255,n>>8&255,n&255]; }
+function mixc(a,b,u){ const A=hex2rgb(a),B=hex2rgb(b); return `rgb(${A.map((x,i)=>Math.round(x+(B[i]-x)*u)).join(",")})`; }
+function shade(c,k){ const A=hex2rgb(c.startsWith("#")?c:"#888"); return `rgb(${A.map(x=>Math.round(clamp(x*k,0,255))).join(",")})`; }
+
+function fitCanvas(cv){
+  const dpr=Math.min(2,devicePixelRatio||1), r=cv.getBoundingClientRect();
+  const w=Math.max(10,Math.round(r.width*dpr)), h=Math.max(10,Math.round(r.height*dpr));
+  if (cv.width!==w||cv.height!==h){ cv.width=w; cv.height=h; }
+  return {w,h,dpr};
+}
+function rr(c,x,y,w,h,r){ c.beginPath(); c.roundRect ? c.roundRect(x,y,w,h,r) : c.rect(x,y,w,h); }
+
+// visual rotation angles (scaled so teeth never strobe)
+const VK=0.25/3000;
+let A={e:0,i:0,o:0,id:0};
+function angles(dt){
+  A.e += RPM(S.we)*VK*dt; A.i += RPM(S.wi)*VK*dt; A.o += RPM(S.v/RW*FD)*VK*dt;
+  if (S.riSt==="engaged") A.id += -RPM(S.wi)*12/17*VK*dt;
+}
+
+function gearCyl(c,x0,w,yc,R,col,ang,N,hel,alpha=1){
+  const g=c.createLinearGradient(0,yc-R,0,yc+R);
+  g.addColorStop(0,shade(col,0.62)); g.addColorStop(0.3,shade(col,1.08)); g.addColorStop(0.55,col); g.addColorStop(1,shade(col,0.55));
+  c.globalAlpha=alpha; c.fillStyle=g; rr(c,x0,yc-R,w,2*R,Math.min(7,w/3)); c.fill();
+  if (N){
+    c.save(); rr(c,x0,yc-R,w,2*R,Math.min(7,w/3)); c.clip();
+    c.lineWidth=1.6;
+    for (let i=0;i<N;i++){
+      const th=2*Math.PI*(i/N+ang), z=Math.cos(th); if (z<=0.05) continue;
+      const y=yc+R*Math.sin(th), dy=hel*z;
+      c.strokeStyle=`rgba(20,25,40,${(0.12+0.38*z)*alpha})`;
+      c.beginPath(); c.moveTo(x0,y-dy); c.lineTo(x0+w,y+dy); c.stroke();
+    }
+    c.restore();
+  }
+  c.lineWidth=2; c.strokeStyle=`rgba(20,25,40,${0.45*alpha})`; rr(c,x0,yc-R,w,2*R,Math.min(7,w/3)); c.stroke();
+  c.globalAlpha=1;
+}
+
+// cutaway geometry (logical 1000 x 500)
+const YI=165, YO=345, D=YO-YI;
+const PX={1:[214,40],2:[362,40],3:[432,40],4:[574,40],5:[716,40]};
+const UX={A:298,B:503,C:800};
+function radii(g){ const [a,b]=Z[g]; return [D*a/(a+b), D*b/(a+b)]; }
+
+function drawBox(){
+  const cv=document.getElementById("box"), {w,h}=fitCanvas(cv), c=cv.getContext("2d");
+  const sc=w/1040; c.setTransform(sc,0,0,sc,0,0); c.clearRect(0,0,1040,520);
+  const eg=engaged(), cl=S.clutch.v, cap=clutchCap();
+  // casing
+  c.fillStyle=T.casing; rr(c,112,40,800,450,30); c.fill();
+  c.strokeStyle=T.line; c.lineWidth=3; rr(c,112,40,800,450,30); c.stroke();
+  c.setLineDash([6,6]); c.beginPath(); c.moveTo(690,48); c.lineTo(690,482); c.stroke(); c.setLineDash([]);
+  c.font="600 13px Fredoka, Nunito, sans-serif"; c.fillStyle=T.muted; c.textAlign="left";
+  c.fillText("5th-gear end housing",772,62);
+  // engine + clutch
+  gearCyl(c,8,30,YI,16,T.steel,-A.e,6,0);
+  gearCyl(c,36,24,YI,110,T.steel,-A.e,36,0);
+  const dsh=5*cl, psh=10*cl;
+  gearCyl(c,62+dsh,9,YI,96,T.input,-A.i,26,0);
+  gearCyl(c,74+psh,16,YI,102,T.steel,-A.e,30,0);
+  c.fillStyle=T.muted; c.font="600 12px Nunito, sans-serif"; c.textAlign="center";
+  c.fillText("engine",48,46); c.fillText("clutch",80,YI+128);
+  // slip glow at clutch
+  const slip=Math.abs(S.Tc*(S.we-S.wi));
+  if (slip>200){ c.fillStyle=`rgba(255,110,60,${clamp(slip/9000,0.1,0.65)})`; rr(c,58+dsh,YI-100,8,200,4); c.fill(); }
+  // shafts
+  gearCyl(c,64,850,YI,13,T.input,-A.i,8,0);
+  gearCyl(c,135,780,YO,14,T.output,A.o,8,0);
+  // final drive
+  gearCyl(c,150,34,YO,30,T.output,A.o,14,3);
+  c.save(); rr(c,112,40,800,450,30); c.clip(); gearCyl(c,146,42,YO+30+120,120,T.output,-A.o*14/60,60,-3); c.restore();
+  c.fillStyle=T.muted; c.fillText("to wheels ↓",167,510);
+  // reverse train (idler behind)
+  const rio=S.ri; const ID_R=(D-13-40-88)/2+6, ID_Y=YI+34+ID_R;
+  c.fillStyle=T.steel; rr(c,226,ID_Y-5,130,10,5); c.fill();
+  const ix=UX.A-17-42*(1-rio);
+  gearCyl(c,ix,32,ID_Y,ID_R,T.reverse,A.id,17,0,0.95);
+  if (S.riSt==="blocked") sparks(c,UX.A-6,ID_Y+ID_R);
+  // gear pairs
+  for (let g=1; g<=5; g++){
+    const [x,wd]=PX[g], [rd,rn]=radii(g);
+    const e = eg && eg.gear===g ? 1 : 0;
+    gearCyl(c,x,wd,YI,rd,T.input,-A.i,Z[g][0],5);
+    gearCyl(c,x,wd,YO,rn,e?T.output:T.free,A.i*Z[g][0]/Z[g][1],Z[g][1],-5);
+    c.fillStyle=T.input; c.font="700 15px Fredoka, Nunito, sans-serif"; c.textAlign="center";
+    c.fillText(g+ordS(g),x+wd/2,YI-rd-8);
+  }
+  // reverse gear on input
+  gearCyl(c,UX.A-16,30,YI,36,T.reverse,-A.i,12,0);
+  c.fillStyle=T.reverse; c.font="700 14px Fredoka, Nunito, sans-serif"; c.fillText("R",UX.A-1,YI-44);
+  // synchro units
+  for (const k of ["A","B","C"]){
+    const u=S.units[k], cx=UX[k], off=u.s*22;
+    for (const s of (k==="C"?[-1]:[-1,1])){
+      const g=gearOf(k,s), e = eg && eg.gear===g;
+      const col=e?T.output:T.free;
+      const dx = cx + s*37; gearCyl(c, s<0?dx-13:dx, 13, YO, 74, col, A.i*Z[g][0]/Z[g][1], 26, 0);
+      const pushed = (Math.sign(u.s)===s && Math.abs(u.s)>=0.3) ? 4 : 0;
+      const rx = cx + s*(26+pushed); gearCyl(c, s<0?rx-10:rx, 10, YO, 70, T.brass, A.o, 22, 0);
+      if (S.syncing && S.syncing.unit===k && S.syncing.side===s){
+        const gx=cx+s*(37+pushed*0.2);
+        const grad=c.createLinearGradient(gx-10,0,gx+10,0);
+        grad.addColorStop(0,"rgba(255,90,40,0)"); grad.addColorStop(0.5,`rgba(255,110,50,${0.55+0.3*Math.random()})`); grad.addColorStop(1,"rgba(255,90,40,0)");
+        c.fillStyle=grad; c.fillRect(gx-10,YO-80,20,160);
+        if (S.grinding>0.05) sparks(c,cx+s*30+off*0.2,YO-84);
+      }
+    }
+    gearCyl(c,cx-17,34,YO,62,T.output,A.o,20,0);
+    const sx=cx-26+off;
+    gearCyl(c,sx,20,YO,82,T.output,A.o,k==="A"?43:22,0);
+    gearCyl(c,sx+20,12,YO,70,shade(T.output,0.7),A.o,18,0);
+    gearCyl(c,sx+32,20,YO,82,T.output,A.o,k==="A"?43:22,0);
+    // fork
+    c.fillStyle=T.steel; rr(c,cx+off-6,YO+76,12,520-(YO+76),4); c.fill();
+    c.globalAlpha=0.5; rr(c,cx+off-5,YO-6,10,84,4); c.fill(); c.globalAlpha=1;
+    c.fillStyle=T.steel; rr(c,cx+off-34,476,68,10,5); c.fill();
+    c.fillStyle=T.ink; c.font="700 12px Nunito, sans-serif"; c.textAlign="center";
+    c.fillText(k==="A"?"1/2":k==="B"?"3/4":"5th", cx+off, YO+110);
+  }
+  // power flow
+  const pa=clamp(Math.abs(S.Tc)/25,0,1);
+  if (eg && pa>0.05){
+    let pts;
+    if (eg.gear==="R") pts=[[20,YI],[UX.A,YI],[UX.A,YO],[167,YO],[167,YO+70]];
+    else { const [x,wd]=PX[eg.gear], gx=x+wd/2, ux=UX[eg.unit]; pts=[[20,YI],[gx,YI],[gx,YO-46],[ux,YO-46],[ux,YO],[167,YO],[167,YO+70]]; }
+    flow(c,pts,T.accent,pa);
+  } else if (!eg && S.we>5 && cap>20 && Math.abs(S.we-S.wi)<5){
+    flow(c,[[20,YI],[700,YI]],T.input,0.6,5);
+  }
+  // labels
+  c.textAlign="left"; c.font="700 13px Fredoka, Nunito, sans-serif";
+  c.fillStyle=T.input; c.fillText("INPUT shaft",925,YI+5);
+  c.fillStyle=T.output; c.fillText("OUTPUT shaft",925,YO+5);
+  c.font="600 11px Nunito, sans-serif"; c.fillStyle=T.muted;
+  c.fillText("from clutch",925,YI+21); c.fillText("3 synchros",925,YO+21);
+  c.fillStyle=T.reverse; c.textAlign="left"; c.fillText("idler",UX.A+18,ID_Y+ID_R+4);
+  // status bubble
+  let tag=null;
+  if (S.grinding>0.05) tag=["GRINDING!",T.danger];
+  else if (S.syncing) tag=["synchronising "+S.syncing.gear+ordS(S.syncing.gear)+"…",T.brass];
+  else if (eg) tag=[(eg.gear==="R"?"reverse":eg.gear+ordS(eg.gear)+" gear")+" locked", T.output];
+  if (tag){ c.font="700 15px Fredoka, Nunito, sans-serif"; const tw=c.measureText(tag[0]).width+22; c.fillStyle=tag[1]; rr(c,520-tw/2,8,tw,26,13); c.fill(); c.fillStyle="#fff"; c.textAlign="center"; c.fillText(tag[0],520,26); }
+  if (S.shake>0) S.shake-=1/60;
+}
+function flow(c,pts,col,a,wd=9){
+  c.save(); c.lineJoin="round"; c.lineCap="round";
+  c.globalAlpha=0.22*a; c.strokeStyle=col; c.lineWidth=wd+10; c.beginPath(); pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p)); c.stroke();
+  c.globalAlpha=0.95*a; c.lineWidth=wd; c.setLineDash([16,12]); c.lineDashOffset=-S.time*70; c.beginPath(); pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p)); c.stroke();
+  c.restore();
+}
+function sparks(c,x,y){
+  if (reduceMotion) { c.fillStyle=T.danger; c.beginPath(); c.arc(x,y,6,0,7); c.fill(); return; }
+  for (let i=0;i<10;i++){
+    const a=Math.random()*Math.PI*2, r=6+Math.random()*26;
+    c.strokeStyle=Math.random()<0.5?"#ffd23f":"#ff6a3d"; c.lineWidth=2;
+    c.beginPath(); c.moveTo(x,y); c.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r); c.stroke();
+  }
+}
+
+// ---- gauges ----
+function gauge(id,val,max,red,label,unit,major,fmt){
+  const cv=document.getElementById(id), {w}=fitCanvas(cv), c=cv.getContext("2d");
+  const sc=w/200; c.setTransform(sc,0,0,sc,0,0); c.clearRect(0,0,200,200);
+  const a0=Math.PI*0.75, a1=Math.PI*2.25, cx=100, cy=104, R=78;
+  c.lineCap="round"; c.lineWidth=14; c.strokeStyle=T.line; c.beginPath(); c.arc(cx,cy,R,a0,a1); c.stroke();
+  if (red!=null){ c.strokeStyle=T.danger; c.globalAlpha=0.35; c.beginPath(); c.arc(cx,cy,R,a0+(a1-a0)*red/max,a1); c.stroke(); c.globalAlpha=1; }
+  const f=clamp(val/max,0,1); const col = red!=null && val>red ? T.danger : T.accent;
+  c.strokeStyle=col; c.beginPath(); c.arc(cx,cy,R,a0,a0+(a1-a0)*Math.max(0.0001,f)); c.stroke();
+  c.fillStyle=T.muted; c.font="700 11px JetBrains Mono, monospace"; c.textAlign="center"; c.textBaseline="middle";
+  for (let m=0;m<=max;m+=major){ const a=a0+(a1-a0)*m/max; c.fillText(fmt(m),cx+Math.cos(a)*(R-24),cy+Math.sin(a)*(R-24)); }
+  const a=a0+(a1-a0)*f; c.strokeStyle=T.ink; c.lineWidth=4; c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+Math.cos(a)*(R-10),cy+Math.sin(a)*(R-10)); c.stroke();
+  c.fillStyle=T.ink; c.beginPath(); c.arc(cx,cy,7,0,7); c.fill();
+  c.font="700 26px Fredoka, Nunito, sans-serif"; c.fillText(Math.round(val).toLocaleString("en"),cx,cy+44);
+  c.font="700 11px Nunito, sans-serif"; c.fillStyle=T.muted; c.fillText(label+" · "+unit,cx,cy+66); c.textBaseline="alphabetic";
+}
+
+// ---- road ----
+function drawRoad(){
+  const cv=document.getElementById("road"), {w,h,dpr}=fitCanvas(cv), c=cv.getContext("2d");
+  const H=132, sc=h/H, W=w/sc; c.setTransform(sc,0,0,sc,0,0);
+  c.fillStyle=T.sky; c.fillRect(0,0,W,H);
+  const px=S.dist*12; // px per metre
+  // hills
+  c.fillStyle=T.hill;
+  c.beginPath(); c.moveTo(0,H);
+  for (let x=0;x<=W+20;x+=20){ const X=x+px*0.15; c.lineTo(x,74-18*Math.sin(X/130)-10*Math.sin(X/47)); }
+  c.lineTo(W,H); c.fill();
+  // trees
+  for (let i=-1;i<W/90+2;i++){
+    const base=Math.floor(px*0.55/90)+i, x=base*90-px*0.55;
+    const seed=Math.sin(base*12.9898)*43758.5453, rnd=seed-Math.floor(seed);
+    if (rnd<0.35) continue;
+    c.fillStyle=T.steel; c.fillRect(x+8,70,4,18);
+    c.fillStyle=mixc(T.hill.startsWith("#")?T.hill:"#bfe3cf",T.output.startsWith("#")?T.output:"#2fb894",0.45); c.beginPath(); c.arc(x+10,64,10+rnd*6,0,7); c.fill();
+  }
+  // road
+  c.fillStyle=T.road; c.fillRect(0,88,W,44);
+  c.fillStyle="rgba(255,255,255,.75)";
+  for (let x=-((px)%60); x<W; x+=60) c.fillRect(x,108,30,4);
+  // car
+  const carX=Math.min(W*0.32,260), carY=96;
+  let bob = S.engineOn ? Math.sin(S.time*RPM(S.we)/60*0.5)*0.6 : 0;
+  let jx=0, jy=0;
+  if (!reduceMotion && (S.grinding>0.05 || S.shake>0)){ jx=(Math.random()-0.5)*3; jy=(Math.random()-0.5)*3; }
+  const pitch = clamp(-(S.lastAcc||0)*0.012,-0.06,0.06);
+  c.save(); c.translate(carX+jx,carY+bob+jy); c.rotate(pitch);
+  // exhaust puffs
+  if (S.engineOn && Math.random()<0.15+S.thr.v*0.6) S.puffs.push({x:-58,y:6,r:3,a:0.5});
+  for (const p of S.puffs){ p.x-=0.6+S.v*0.3; p.y-=0.25; p.r+=0.25; p.a-=0.012; }
+  S.puffs=S.puffs.filter(p=>p.a>0).slice(-40);
+  for (const p of S.puffs){ c.fillStyle=`rgba(160,170,190,${p.a})`; c.beginPath(); c.arc(p.x,p.y,p.r,0,7); c.fill(); }
+  // body
+  c.fillStyle=T.accent; rr(c,-58,-14,116,26,12); c.fill();
+  c.beginPath(); c.moveTo(-34,-14); c.quadraticCurveTo(-26,-40,4,-40); c.quadraticCurveTo(30,-40,40,-14); c.closePath(); c.fill();
+  c.fillStyle=T.sky; c.beginPath(); c.moveTo(-26,-16); c.quadraticCurveTo(-20,-34,0,-34); c.lineTo(0,-16); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(6,-16); c.lineTo(6,-34); c.quadraticCurveTo(26,-34,32,-16); c.closePath(); c.fill();
+  // lights
+  c.fillStyle="#fff7c2"; c.beginPath(); c.arc(54,-4,4,0,7); c.fill();
+  const rev = S.riSt==="engaged"; c.fillStyle = S.brk.v>0.05 ? "#ff3b3b" : rev ? "#ffffff" : shade(T.accent,0.7);
+  rr(c,-60,-8,6,8,2); c.fill();
+  // face on the bonnet: cute
+  c.fillStyle=T.ink; c.beginPath(); c.arc(36,-2,2.2,0,7); c.arc(46,-2,2.2,0,7); c.fill();
+  c.strokeStyle=T.ink; c.lineWidth=1.6; c.beginPath();
+  if (S.grinding>0.05||S.time-S.stallT<1.5) { c.moveTo(37,6); c.lineTo(45,6); } else c.arc(41,3,4,0.15*Math.PI,0.85*Math.PI);
+  c.stroke();
+  // wheels
+  const wa=S.dist/RW;
+  for (const wx of [-34,34]){ c.fillStyle="#2a2f3a"; c.beginPath(); c.arc(wx,12,12,0,7); c.fill(); c.fillStyle=T.steel; c.beginPath(); c.arc(wx,12,6,0,7); c.fill();
+    c.strokeStyle="#2a2f3a"; c.lineWidth=2; c.beginPath(); c.moveTo(wx,12); c.lineTo(wx+Math.cos(wa)*6,12+Math.sin(wa)*6); c.stroke(); }
+  c.restore();
+  // overlay text
+  const kmh=Math.abs(S.v*3.6), eg=engaged();
+  c.fillStyle=T.ink; c.font="700 22px Fredoka, Nunito, sans-serif"; c.textAlign="right";
+  c.fillText(kmh.toFixed(0)+" km/h"+(S.v<-0.2?" ◀":""),W-16,30);
+  c.font="600 12px Nunito, sans-serif"; c.fillStyle=T.muted;
+  c.fillText((S.dist/1000).toFixed(2)+" km driven · "+(eg?(eg.gear==="R"?"reverse":eg.gear+ordS(eg.gear)+" gear"):"neutral"),W-16,48);
+}
+
+// ---- mascot ----
+let faceMoodHold=null, faceHoldT=0;
+function drawFace(dt){
+  const cv=document.getElementById("face"), c=cv.getContext("2d"); c.setTransform(2,0,0,2,0,0); c.clearRect(0,0,92,92);
+  faceHoldT-=dt; if (faceHoldT<0) faceMoodHold=null;
+  let mood="smile";
+  if (!S.engineOn && S.cranking<=0) mood="sleep";
+  if (S.syncing) mood="focus";
+  if (S.temp>200) mood="sweat";
+  if (Math.abs(S.v*3.6)>90) mood="wow";
+  if (faceMoodHold) mood=faceMoodHold;
+  if (S.time-S.overrevT<2.5) mood="dizzy";
+  if (S.grinding>0.05) mood="ouch";
+  const cx=46, cy=48, t=S.time;
+  // gear body
+  c.fillStyle=T.free;
+  c.beginPath();
+  for (let i=0;i<12;i++){ const a=i/12*Math.PI*2+t*0.15*(S.engineOn?1:0); const a2=a+Math.PI/12;
+    c.lineTo(cx+Math.cos(a-0.12)*42,cy+Math.sin(a-0.12)*42); c.lineTo(cx+Math.cos(a+0.12)*42,cy+Math.sin(a+0.12)*42);
+    c.lineTo(cx+Math.cos(a2-0.1)*35,cy+Math.sin(a2-0.1)*35); c.lineTo(cx+Math.cos(a2+0.1)*35,cy+Math.sin(a2+0.1)*35); }
+  c.closePath(); c.fill();
+  c.fillStyle=mixc(T.free.startsWith("#")?T.free:"#f2bf47","#ffffff",0.25); c.beginPath(); c.arc(cx,cy,30,0,7); c.fill();
+  c.fillStyle="#ff9aa2"; c.globalAlpha=0.55; c.beginPath(); c.arc(cx-17,cy+8,5,0,7); c.arc(cx+17,cy+8,5,0,7); c.fill(); c.globalAlpha=1;
+  c.strokeStyle="#1f2a3c"; c.fillStyle="#1f2a3c"; c.lineWidth=2.6; c.lineCap="round";
+  const eye=(x,y)=>{
+    if (mood==="sleep"||mood==="happy"){ c.beginPath(); c.arc(x,y+1,4,Math.PI*1.1,Math.PI*1.9,false); c.stroke(); }
+    else if (mood==="ouch"){ c.beginPath(); c.moveTo(x-4,y-3); c.lineTo(x+3,y); c.lineTo(x-4,y+3); c.stroke(); }
+    else if (mood==="dizzy"){ c.beginPath(); for(let k=0;k<14;k++){ const a=k*0.8+t*8, r=k*0.38; c.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);} c.stroke(); }
+    else if (mood==="wow"){ c.beginPath(); c.arc(x,y,4.5,0,7); c.fill(); c.fillStyle="#fff"; c.beginPath(); c.arc(x+1.5,y-1.5,1.5,0,7); c.fill(); c.fillStyle="#1f2a3c"; }
+    else { const blink = (t%3.2)<0.12; if (blink){ c.beginPath(); c.moveTo(x-3,y); c.lineTo(x+3,y); c.stroke(); } else { c.beginPath(); c.arc(x,y,3.4,0,7); c.fill(); } }
+  };
+  if (mood==="ouch"){ c.beginPath(); c.moveTo(cx+18-4,cy-6-3); c.lineTo(cx+18-11,cy-6); c.lineTo(cx+18-4,cy-6+3); c.stroke(); eye(cx-11,cy-6); }
+  else { eye(cx-11,cy-6); eye(cx+11,cy-6); }
+  c.beginPath();
+  if (mood==="smile"||mood==="happy") c.arc(cx,cy+5,8,0.15*Math.PI,0.85*Math.PI);
+  else if (mood==="focus"){ c.moveTo(cx-5,cy+10); c.lineTo(cx+5,cy+10); }
+  else if (mood==="ouch"){ c.moveTo(cx-8,cy+12); for(let k=0;k<5;k++) c.lineTo(cx-8+4*(k+1),cy+(k%2?12:8)); }
+  else if (mood==="sleep"){ c.arc(cx,cy+11,3,0,7); }
+  else if (mood==="dizzy"){ c.moveTo(cx-7,cy+11); c.quadraticCurveTo(cx,cy+5,cx+7,cy+11); }
+  else if (mood==="wow"){ c.arc(cx,cy+11,5,0,7); }
+  else if (mood==="sweat"){ c.moveTo(cx-6,cy+11); c.lineTo(cx+6,cy+11); }
+  c.stroke();
+  if (mood==="sleep"){ c.fillStyle=T.muted; c.font="700 12px Fredoka, sans-serif"; c.fillText("z",cx+28,cy-24+Math.sin(t*2)*2); c.font="700 9px Fredoka, sans-serif"; c.fillText("z",cx+36,cy-34+Math.sin(t*2+1)*2); }
+  if (mood==="sweat"||mood==="focus"){ c.fillStyle="#7cc4ff"; c.beginPath(); c.moveTo(cx+26,cy-20); c.quadraticCurveTo(cx+31,cy-11,cx+26,cy-9); c.quadraticCurveTo(cx+21,cy-11,cx+26,cy-20); c.fill(); }
+}
+
+// ---- side panel text ----
+const el=id=>document.getElementById(id);
+function panelUI(){
+  const eg=engaged(), cap=clutchCap(), slip=Math.abs(S.we-S.wi);
+  el("gearTxt").textContent = eg ? String(eg.gear) : "N";
+  let cs = S.clutch.v>0.75 ? "disengaged" : cap>1 && slip>RAD(40) ? "slipping" : "engaged";
+  el("vClutch").textContent = cs+" · "+Math.round(cap)+" N·m";
+  el("chipClutch").classList.toggle("warn", cs==="slipping" && slip>RAD(800));
+  let sy="idle";
+  if (S.grinding>0.05) sy="GRINDING";
+  else if (S.syncing) sy="syncing "+S.syncing.gear+ordS(S.syncing.gear)+" · Δ"+Math.round(Math.abs(RPM(S.syncing.diff)))+" rpm";
+  else if (eg) sy=(eg.gear==="R"?"reverse idler":"locked "+eg.gear+ordS(eg.gear));
+  el("vSync").textContent=sy; el("chipSync").classList.toggle("warn",S.grinding>0.05);
+  el("vShafts").textContent=Math.round(RPM(S.wi)).toLocaleString("en")+" / "+Math.round(RPM(S.v/RW*FD)).toLocaleString("en")+" rpm";
+  el("vTemp").textContent=Math.round(S.temp)+" °C"; el("chipTemp").classList.toggle("warn",S.temp>200);
+  el("vHealth").textContent=Math.round(S.health)+" %"; el("healthBar").style.width=S.health+"%";
+  el("healthBar").style.background = S.health>60?"var(--ok)":S.health>30?"var(--free)":"var(--danger)";
+  const on=S.engineOn||S.cranking>0;
+  startTxt.textContent = on ? "Stop engine" : "Start engine";
+  startBtn.classList.toggle("off", on); engDot.classList.toggle("on", S.engineOn);
+}
+
+// ================= main loop =================
+let last=performance.now(), prevV=0;
+function frame(now){
+  let dt=Math.min(0.05,(now-last)/1000); last=now;
+  pedalKeys(dt); leverStep(dt);
+  const N=10, h=dt/N;
+  for (let i=0;i<N;i++) physics(h);
+  S.lastAcc = (S.v-prevV)/Math.max(dt,1e-3); prevV=S.v;
+  monitors(dt); angles(dt);
+  try{ drawRoad(); drawBox(); gauge("tacho",RPM(S.we),7000,LIMIT,"engine","rpm",1000,m=>m/1000); gauge("speedo",Math.abs(S.v*3.6),180,null,"speed","km/h",30,m=>m); drawFace(dt); }catch(e){ console.error(e); }
+  pedalUI(); leverUI(); panelUI(); audioTick();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
