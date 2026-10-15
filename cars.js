@@ -61,7 +61,7 @@ window.SHIFTLAB_CARS = {
     mass: 960, cda: 0.64, clutchCap: 190, limit: 6400,
     // X12XE Ecotec 1.2 16v: 65 hp at 5600 rpm, 110 N·m at 4000 rpm (approximate curve)
     tq: [[0,0],[400,32],[800,70],[1500,86],[2500,96],[3200,102],[4000,110],[5000,101],[5600,82],[6400,66],[7000,50]],
-    // layout assumed like other transverse 5-speeds of its era (not confirmed for the F13)
+    // layout assumed like other transverse 5-speeds of its era (the So wird's gemacht manual doesn't cover F13 internals)
     units: { A:{shaft:"out", gears:{"-1":1,"1":2}}, B:{shaft:"in", gears:{"-1":3,"1":4}}, C:{shaft:"in", gears:{"-1":5}} },
     planes: { "-2":{up:"R",down:null}, "-1":{unit:"A",up:1,down:2}, "0":{unit:"B",up:3,down:4}, "1":{unit:"C",up:5,down:null} },
     rev: {plane:-2, dir:-1},

@@ -67,8 +67,9 @@ python scripts/render_all_gears.py MA5_all_gears.mp4
 **Opel Corsa B 1.2 16V (F13)**
 - Engine X12XE: 65 hp at 5600 rpm, 110 N·m at 4000 rpm; tyre 165/70 R13 (about 1.72 m).
 - F13 ratios: 3.727 / 2.136 / 1.414 / 1.121 / 0.892, reverse 3.308; final drive 3.74 (gearbox code F13 C374).
+- Confirmed in the Corsa B workshop manual (So wird's gemacht, Band 90): F13 gearbox, X12XE engine data, 165/70 R13 tyre option, and the gate with reverse far left and forward of 1st.
 - Reverse: lift the ring under the knob, far left and forward.
-- Synchro layout (1/2 on the output shaft, 3/4 and 5th on the input shaft) is assumed, not confirmed by a workshop manual.
+- Synchro layout (1/2 on the output shaft, 3/4 and 5th on the input shaft) is assumed: that manual doesn't cover gearbox internals.
 
 **All cars**
 - Engine torque curves, vehicle mass and synchro/clutch capacities are approximations.
