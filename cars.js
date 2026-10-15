@@ -36,16 +36,16 @@ window.SHIFTLAB_CARS = {
   },
   polo: {
     id: "polo",
-    name: "VW Polo 3 (6N) 1.4",
+    name: "VW Polo 3 (6N2) 1.0",
     gearbox: "VW 085",
-    // 085 gearbox, codes DKF / DQW / ETD / FFR (1.4 44 kW)
-    Z: {1:[11,38], 2:[22,43], 3:[32,40], 4:[45,42], 5:[50,37]},
-    ratio: {1:38/11, 2:43/22, 3:40/32, 4:42/45, 5:37/50, R:-3.18},   // reverse ratio estimated
-    fd: 62/16, fdTeeth: [16,62],            // final drive 62:16 = 3.875
-    tyre: 1.75,                             // m, 175/70 R13
-    mass: 1060, cda: 0.67, clutchCap: 200, limit: 6000,
-    // AEX/APQ 1.4 8v: 60 hp at 4700 rpm, 116 N·m at 3000 rpm (approximate curve)
-    tq: [[0,0],[400,40],[800,84],[1500,100],[2500,112],[3000,116],[3800,111],[4700,91],[5500,74],[6200,58],[7000,40]],
+    // 085 gearbox, codes DKG / DXD / ESY / FFE (1.0 37 kW)
+    Z: {1:[11,38], 2:[21,44], 3:[29,42], 4:[41,45], 5:[46,41]},
+    ratio: {1:38/11, 2:44/21, 3:42/29, 4:45/41, 5:41/46, R:-3.18},   // reverse ratio estimated
+    fd: 65/16, fdTeeth: [16,65],            // final drive 65:16 = 4.063
+    tyre: 1.67,                             // m, 155/70 R13
+    mass: 1057, cda: 0.67, clutchCap: 170, limit: 6000,
+    // AUC / ALD 1.0 8v: 50 hp at 5000 rpm, 86 N·m at 3000-3600 rpm (approximate curve)
+    tq: [[0,0],[400,30],[800,62],[1500,74],[2500,82],[3000,86],[3600,86],[4300,80],[5000,72],[5700,60],[6500,42]],
     // 1/2 synchro on the output shaft (its sleeve carries the reverse teeth); 3/4 and 5th on the input shaft
     units: { A:{shaft:"out", gears:{"-1":1,"1":2}}, B:{shaft:"in", gears:{"-1":3,"1":4}}, C:{shaft:"in", gears:{"-1":5}} },
     planes: { "-2":{up:"R",down:null}, "-1":{unit:"A",up:1,down:2}, "0":{unit:"B",up:3,down:4}, "1":{unit:"C",up:5,down:null} },

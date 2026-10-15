@@ -9,7 +9,7 @@ Interactive simulator and animations of the PSA **MA/5** 5-speed manual gearbox 
 Play it at **https://gear.bombo.fun**:
 
 - [`/saxo`](https://gear.bombo.fun/saxo): Citroën Saxo 1.1i, PSA MA/5 gearbox
-- [`/polo`](https://gear.bombo.fun/polo): VW Polo 3 (6N) 1.4, VW 085 gearbox
+- [`/polo`](https://gear.bombo.fun/polo): VW Polo 3 (6N2) 1.0, VW 085 gearbox
 - [`/corsa`](https://gear.bombo.fun/corsa): Opel Corsa B 1.2 16V, Opel F13 gearbox
 
 No build step, no dependencies. To run it locally, serve the folder (for example `python -m http.server`) and open `/saxo/`, `/polo/` or `/corsa/`.
@@ -58,9 +58,9 @@ python scripts/render_all_gears.py MA5_all_gears.mp4
 - Final drive 14×60, tyre circumference 1.67 m (Saxo 1.1i handbook).
 - All three synchronisers (1/2, 3/4, 5th) on the output shaft; reverse uses a sliding straight-cut idler meshing with teeth on the 1/2 sleeve.
 
-**VW Polo 3 (6N) 1.4 60 hp (085)**
-- Gearbox codes DKF / DQW / ETD / FFR: 1st 38:11 = 3.455, 2nd 43:22 = 1.955, 3rd 40:32 = 1.250, 4th 42:45 = 0.933, 5th 37:50 = 0.740, final drive 62:16 = 3.875.
-- Tyre 175/70 R13 (about 1.75 m rolling circumference); engine 60 hp at 4700 rpm, 116 N·m at 3000 rpm.
+**VW Polo 3 (6N2) 1.0 50 hp (085)**
+- Gearbox codes DKG / DXD / ESY / FFE: 1st 38:11 = 3.455, 2nd 44:21 = 2.095, 3rd 42:29 = 1.448, 4th 45:41 = 1.098, 5th 41:46 = 0.891, final drive 65:16 = 4.063.
+- Engine AUC / ALD: 50 hp at 5000 rpm, 86 N·m at 3000–3600 rpm; tyre 155/70 R13 (about 1.67 m rolling circumference).
 - Synchro layout: 1/2 on the output shaft with the straight reverse teeth on its sleeve; 3/4 and 5th on the input shaft; 5th gear in the end cover. Inferred from teardown reports, not from the VW repair manual.
 - The reverse ratio (≈ 3.2) and the reverse gate position are estimates.
 
