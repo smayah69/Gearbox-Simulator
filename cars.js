@@ -23,6 +23,15 @@ window.SHIFTLAB_CARS = {
     endHousing: "5th-gear end housing",
     inNote: "all drive gears fixed",
     outNote: "3 synchros",
+    // side silhouette (nose to the right), SVG path data; 5-door Saxo
+    shape: {
+      shell: "M-58 10 L-58 -8 Q-58 -12 -55 -13 L-47 -27 Q-45 -30 -40 -30 L-2 -30 Q3 -30 6 -27 L24 -12 Q42 -9 53 -6 Q58 -4 58 1 L58 10 Q58 13 55 13 L-55 13 Q-58 13 -58 10 Z",
+      glass: ["M-48 -14 L-42 -26 L-13 -26 L-13 -14 Z", "M-9 -14 L-9 -26 L0 -26 Q3 -26 5 -24 L18 -14 Z"],
+      lines: "M-11 -12 L-11 11 M-41 -12 Q-43 0 -39 10 M21 -12 L20 6 M-37 -26 L-38 -14",
+      strip: "M-55 0 L22 0",
+      lamp: "M48 -7 L56 -5 L57 -1 L47 -2 Z",
+      tail: "M-58 -11 L-56 -12 L-56 -3 L-58 -3 Z",
+    },
     body: "saxo", colour: "#1d3b78", edge: "#0d1c3d", faceInk: "#ffffff",
   },
   polo: {
@@ -47,6 +56,15 @@ window.SHIFTLAB_CARS = {
     endHousing: "5th gear in the end cover",
     inNote: "3/4 + 5th synchros",
     outNote: "1/2 synchro + R teeth",
+    // side silhouette (nose to the right), SVG path data; 5-door Polo 6N2
+    shape: {
+      shell: "M-58 10 L-58 -12 Q-58 -15 -57 -17 L-54 -30 Q-53 -33 -48 -33 L0 -33 Q4 -33 7 -30 L24 -14 Q40 -11 52 -8 Q58 -6 58 -1 L58 10 Q58 13 55 13 L-55 13 Q-58 13 -58 10 Z",
+      glass: ["M-41 -16 L-39 -29 L-12 -29 L-12 -16 Z", "M-8 -16 L-8 -29 L-1 -29 Q2 -29 4 -27 L18 -16 Z"],
+      lines: "M-10 -14 L-10 11 M-42 -14 Q-44 0 -41 11 M20 -14 L19 6",
+      strip: "M-55 -1 L20 -1",
+      lamp: "M43 -9 Q52 -9 57 -6 L57 -3 Q50 -4 43 -5 Z",
+      tail: "M-58 -15 L-56 -15 L-56 -5 L-58 -5 Z",
+    },
     body: "polo", colour: "#f4f5f2", edge: "#7d8798", faceInk: "#1f2a3c",
   },
   corsa: {
@@ -71,6 +89,15 @@ window.SHIFTLAB_CARS = {
     endHousing: "5th gear in the end cover",
     inNote: "3/4 + 5th synchros",
     outNote: "1/2 synchro + R teeth",
+    // side silhouette (nose to the right), SVG path data; 5-door Corsa B
+    shape: {
+      shell: "M-44 -15 H44 A13 13 0 0 1 57 -2 V-1 A13 13 0 0 1 44 12 H-44 A13 13 0 0 1 -57 -1 V-2 A13 13 0 0 1 -44 -15 Z M-53 -14 Q-54 -36 -40 -43 Q-14 -50 10 -44 Q20 -40 38 -15 Z",
+      glass: ["M-47 -18 Q-47 -34 -37 -39 L-19 -41 L-19 -18 Z", "M-14 -18 L-14 -42 Q2 -43 10 -39 Q18 -33 29 -18 Z"],
+      lines: "M-16 -13 L-16 8 M-42 -13 L-40 6 M14 -13 L14 8",
+      strip: "",
+      lamp: "M47 -9 Q56 -9 57 -3 L47 -2 Z",
+      tail: "",
+    },
     body: "corsa", colour: "#f6f6f3", edge: "#7d8798", faceInk: "#1f2a3c",
   },
 };

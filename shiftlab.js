@@ -640,40 +640,19 @@ function gauge(id,val,max,red,label,unit,major,fmt){
 
 // ---- car bodies (side view, nose to the right) ----
 function drawCarBody(c){
-  const col=CAR.colour, edge=CAR.edge, glass=T.sky;
+  const col=CAR.colour, edge=CAR.edge, glass=T.sky, B=CAR.shape;
+  const P = d => new Path2D(d);
+  // wheel arches behind the body
+  c.fillStyle="#22262e";
+  for (const wx of [-34,34]){ c.beginPath(); c.arc(wx,12,14.5,Math.PI,0); c.fill(); }
   c.lineWidth=1.6; c.strokeStyle=edge; c.fillStyle=col;
-  if (CAR.body==="corsa"){
-    // Corsa B 5-door: round bubbly roof, short bonnet, two door lines
-    rr(c,-57,-15,114,27,13); c.fill(); c.stroke();
-    c.beginPath(); c.moveTo(-53,-14); c.quadraticCurveTo(-54,-36,-40,-43); c.quadraticCurveTo(-14,-50,10,-44);
-    c.quadraticCurveTo(20,-40,38,-15); c.closePath(); c.fill(); c.stroke();
-    c.fillStyle=glass;
-    c.beginPath(); c.moveTo(-47,-18); c.quadraticCurveTo(-47,-34,-37,-39); c.lineTo(-19,-41); c.lineTo(-19,-18); c.closePath(); c.fill();
-    c.beginPath(); c.moveTo(-14,-18); c.lineTo(-14,-42); c.quadraticCurveTo(2,-43,10,-39); c.quadraticCurveTo(18,-33,29,-18); c.closePath(); c.fill();
-    c.strokeStyle=edge; c.beginPath(); c.moveTo(-16,-13); c.lineTo(-16,8); c.moveTo(-42,-13); c.lineTo(-40,6); c.moveTo(14,-13); c.lineTo(14,8); c.stroke();
-    c.fillStyle="#fff7c2"; c.beginPath(); c.moveTo(47,-9); c.quadraticCurveTo(56,-9,57,-3); c.lineTo(47,-2); c.closePath(); c.fill(); c.strokeStyle=edge; c.stroke();
-  } else if (CAR.body==="polo"){
-    // Polo 6N: taller, upright tail, rounder roof, oval headlamps
-    rr(c,-57,-16,114,28,11); c.fill(); c.stroke();
-    c.beginPath(); c.moveTo(-52,-15); c.lineTo(-50,-42); c.quadraticCurveTo(-48,-47,-40,-47); c.lineTo(8,-47);
-    c.quadraticCurveTo(16,-46,22,-38); c.lineTo(37,-16); c.closePath(); c.fill(); c.stroke();
-    c.fillStyle=glass;
-    c.beginPath(); c.moveTo(-46,-19); c.lineTo(-45,-40); c.lineTo(-20,-40); c.lineTo(-20,-19); c.closePath(); c.fill();
-    c.beginPath(); c.moveTo(-15,-19); c.lineTo(-15,-40); c.lineTo(9,-40); c.quadraticCurveTo(15,-39,19,-33); c.lineTo(29,-19); c.closePath(); c.fill();
-    c.strokeStyle=edge; c.beginPath(); c.moveTo(-17,-14); c.lineTo(-17,8); c.stroke();
-    c.fillStyle="#fff7c2"; c.beginPath(); c.ellipse(52,-7,4,5.5,0,0,7); c.fill(); c.strokeStyle=edge; c.stroke();
-    c.fillStyle=edge; rr(c,44,4,14,3,1.5); c.fill();
-  } else {
-    // Saxo: low 3-door hatch, sloping screen
-    rr(c,-58,-14,116,26,12); c.fill(); c.stroke();
-    c.beginPath(); c.moveTo(-50,-13); c.lineTo(-44,-36); c.quadraticCurveTo(-41,-40,-34,-40); c.lineTo(4,-40);
-    c.quadraticCurveTo(12,-39,18,-32); c.lineTo(36,-14); c.closePath(); c.fill(); c.stroke();
-    c.fillStyle=glass;
-    c.beginPath(); c.moveTo(-43,-17); c.lineTo(-39,-34); c.lineTo(-14,-34); c.lineTo(-14,-17); c.closePath(); c.fill();
-    c.beginPath(); c.moveTo(-9,-17); c.lineTo(-9,-34); c.lineTo(4,-34); c.quadraticCurveTo(11,-33,16,-28); c.lineTo(27,-17); c.closePath(); c.fill();
-    c.strokeStyle=edge; c.beginPath(); c.moveTo(-11,-12); c.lineTo(-11,8); c.stroke();
-    c.fillStyle="#fff7c2"; c.beginPath(); c.moveTo(48,-8); c.lineTo(57,-6); c.lineTo(57,-1); c.lineTo(47,-2); c.closePath(); c.fill(); c.strokeStyle=edge; c.stroke();
-  }
+  const shell=P(B.shell); c.fill(shell); c.stroke(shell);
+  c.fillStyle="#22262e"; for (const wx of [-34,34]){ c.beginPath(); c.arc(wx,12,14.5,Math.PI,0); c.fill(); }
+  c.fillStyle=glass; for (const g of B.glass) c.fill(P(g));
+  c.strokeStyle=edge; c.lineWidth=1.4; c.stroke(P(B.lines));
+  if (B.strip){ c.lineWidth=2.4; c.strokeStyle="rgba(30,34,44,.75)"; c.stroke(P(B.strip)); }
+  if (B.tail){ c.fillStyle="#c0392b"; c.fill(P(B.tail)); }
+  c.lineWidth=1.4; c.fillStyle="#fff7c2"; c.strokeStyle=edge; const lp=P(B.lamp); c.fill(lp); c.stroke(lp);
   const rev = S.riSt==="engaged"; c.fillStyle = S.brk.v>0.05 ? "#ff3b3b" : rev ? "#ffffff" : "#c0392b";
   rr(c,-60,-9,6,8,2); c.fill();
   // little face on the bonnet
