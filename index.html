@@ -27,8 +27,17 @@
 .facts dt{color:var(--muted);font-family:var(--font-display);font-weight:600;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;padding-top:2px}
 .facts dd{margin:0;font-family:var(--font-mono);font-size:.84rem;font-variant-numeric:tabular-nums}
 .go{justify-self:start;font-family:var(--font-display);font-weight:600;background:var(--accent);color:#fff;border-radius:999px;padding:8px 18px}
-.foot{color:var(--muted);font-size:.85rem}
-.foot a{color:var(--ink)}
+.notes{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr);gap:18px 40px;background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:18px 22px}
+.notes h3{font-family:var(--font-display);font-weight:600;font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.notes ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.keysrow li{font-size:.9rem;color:var(--muted);white-space:nowrap}
+.notes kbd{font-family:var(--font-mono);font-size:.78rem;color:var(--ink);border:1.5px solid var(--line);border-bottom-width:3px;border-radius:7px;padding:1px 7px;margin-right:4px}
+.about li{display:grid;grid-template-columns:6.5rem minmax(0,1fr);gap:12px;font-size:.9rem;line-height:1.45;max-width:90ch}
+.about li strong{font-family:var(--font-display);font-weight:600;color:var(--ink)}
+.about li{color:var(--muted)}
+.notes .src{margin:12px 0 0;font-size:.85rem;color:var(--muted)}
+.notes a{color:var(--ink)}
+@media (max-width:760px){.notes{grid-template-columns:minmax(0,1fr)}.keysrow ul{display:flex;flex-wrap:wrap;gap:8px 16px}.about li{grid-template-columns:minmax(0,1fr);gap:2px}}
 @media (max-width:1240px){.cars{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:680px){.cars{grid-template-columns:minmax(0,1fr)}.hero h1{font-size:1.9rem}}
 @media (prefers-reduced-motion:reduce){.carcard{transition:none}.carcard:hover{transform:none}}
@@ -95,7 +104,30 @@
       <span class="go">Drive the GX3 →</span>
     </a>
   </div>
-  <p class="foot">Keys: <strong>E</strong> engine · <strong>Space</strong> clutch · <strong>W</strong> throttle · <strong>S</strong> brake · <strong>1–5, R, N</strong> gears. Source on <a href="https://github.com/smayah69/gearbox_ma5">GitHub</a>. *Corsa synchro layout is assumed: the Corsa B workshop manual (So wird's gemacht, Band 90) confirms the F13 gearbox and gate but doesn't cover gearbox internals. GX3: Geely doesn't publish the S170B2's gear ratios or synchro layout, so those are estimates.</p>
+  <section class="notes" aria-label="Keys and notes">
+    <div class="keysrow">
+      <h3>Keys</h3>
+      <ul>
+        <li><kbd>E</kbd> engine</li>
+        <li><kbd>Space</kbd> clutch</li>
+        <li><kbd>W</kbd> throttle</li>
+        <li><kbd>S</kbd> brake</li>
+        <li><kbd>1</kbd>–<kbd>5</kbd> <kbd>R</kbd> <kbd>N</kbd> gears</li>
+        <li><kbd>M</kbd> sound</li>
+      </ul>
+    </div>
+    <div class="about">
+      <h3>About the data</h3>
+      <ul>
+        <li><strong>Saxo</strong> Ratios and final drive from MA/5N tooth counts and the Saxo handbook.</li>
+        <li><strong>Polo</strong> Ratios from 085 gearbox code tables. The reverse ratio and the 3/4 + 5th synchro positions come from teardown reports, not a VW manual.</li>
+        <li><strong>Corsa*</strong> The Corsa B workshop manual (So wird's gemacht, Band 90) confirms the F13 gearbox, engine data and gate, but doesn't cover gearbox internals, so the synchro layout is assumed.</li>
+        <li><strong>GX3*</strong> Geely doesn't publish the S170B2's ratios or synchro layout, so those are estimates.</li>
+        <li><strong>All cars</strong> Torque curves, weights and clutch/synchro capacities are approximations. Drawings are schematic.</li>
+      </ul>
+      <p class="src">Source code on <a href="https://github.com/smayah69/gearbox_ma5">GitHub</a>.</p>
+    </div>
+  </section>
 </main>
 <script src="cars.js"></script>
 <script>
