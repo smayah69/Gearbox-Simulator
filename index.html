@@ -46,7 +46,7 @@
 <body>
 <main class="home">
   <div class="hero">
-    <svg class="logo" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="var(--free)"/><g fill="var(--ink)"><circle cx="16" cy="19" r="2.6"/><circle cx="28" cy="19" r="2.6"/></g><path d="M15 27c4 4 10 4 14 0" stroke="var(--ink)" stroke-width="2.6" fill="none" stroke-linecap="round"/><g fill="var(--accent)"><rect x="19" y="-1" width="6" height="7" rx="2"/><rect x="19" y="38" width="6" height="7" rx="2"/><rect x="-1" y="19" width="7" height="6" rx="2"/><rect x="38" y="19" width="7" height="6" rx="2"/></g></svg>
+    <svg class="logo" viewBox="0 0 44 44" aria-hidden="true"><g class="gearspin"><path d="M37.19 18.92 L41.88 19.80 L41.88 24.20 L37.19 25.08 L36.70 26.93 L40.31 30.04 L38.12 33.84 L33.62 32.26 L32.26 33.62 L33.84 38.12 L30.04 40.31 L26.93 36.70 L25.08 37.19 L24.20 41.88 L19.80 41.88 L18.92 37.19 L17.07 36.70 L13.96 40.31 L10.16 38.12 L11.74 33.62 L10.38 32.26 L5.88 33.84 L3.69 30.04 L7.30 26.93 L6.81 25.08 L2.12 24.20 L2.12 19.80 L6.81 18.92 L7.30 17.07 L3.69 13.96 L5.88 10.16 L10.38 11.74 L11.74 10.38 L10.16 5.88 L13.96 3.69 L17.07 7.30 L18.92 6.81 L19.80 2.12 L24.20 2.12 L25.08 6.81 L26.93 7.30 L30.04 3.69 L33.84 5.88 L32.26 10.38 L33.62 11.74 L38.12 10.16 L40.31 13.96 L36.70 17.07 Z" fill="var(--free)" stroke="var(--brass)" stroke-width="1.2" stroke-linejoin="round"/><circle cx="22" cy="22" r="11" fill="none" stroke="var(--brass)" stroke-width="1.2" opacity=".55"/><g fill="var(--bg)"><circle cx="22" cy="15" r="2.3"/><circle cx="29" cy="22" r="2.3"/><circle cx="22" cy="29" r="2.3"/><circle cx="15" cy="22" r="2.3"/></g><circle cx="22" cy="22" r="4.2" fill="var(--bg)" stroke="var(--brass)" stroke-width="1.2"/></g></svg>
     <div>
       <h1>Shift Lab</h1>
       <p>Drive a real 5-speed manual gearbox: clutch, throttle and lever are yours, and a live cutaway shows the synchros doing their job. Pick a car.</p>
@@ -131,21 +131,56 @@
 </main>
 <script src="cars.js"></script>
 <script>
-// draw each car card from the same silhouettes the simulator uses
+// draw each car card from the same silhouettes the simulator uses, then let it idle
+const NS = "http://www.w3.org/2000/svg";
+const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const scenes = [];
 for (const svg of document.querySelectorAll("svg[data-car]")){
-  const C = window.SHIFTLAB_CARS[svg.dataset.car], B = C.shape, ns = "http://www.w3.org/2000/svg";
-  const add = (tag, attrs) => { const e=document.createElementNS(ns,tag); for (const k in attrs) e.setAttribute(k,attrs[k]); svg.appendChild(e); return e; };
+  const C = window.SHIFTLAB_CARS[svg.dataset.car], B = C.shape;
+  const el = (parent, tag, attrs) => { const e=document.createElementNS(NS,tag); for (const k in attrs) e.setAttribute(k,attrs[k]); parent.appendChild(e); return e; };
+  const smoke = el(svg,"g",{});                      // behind the car
+  const car = el(svg,"g",{class:"idle"});
+  const body = el(car,"g",{});
   const arch = x => `M${x-14.5} 12 A14.5 14.5 0 0 1 ${x+14.5} 12 Z`;
-  add("path",{d:B.shell, fill:C.colour, stroke:C.edge, "stroke-width":1.6});
-  add("path",{d:arch(-34)+" "+arch(34), fill:"#22262e"});
-  for (const g of B.glass) add("path",{d:g, fill:"var(--sky)"});
-  add("path",{d:B.lines, fill:"none", stroke:C.edge, "stroke-width":1.4});
-  if (B.strip) add("path",{d:B.strip, fill:"none", stroke:"rgba(30,34,44,.75)", "stroke-width":2.4});
-  if (B.tail) add("path",{d:B.tail, fill:"#c0392b"});
-  add("path",{d:B.lamp, fill:"#fff7c2", stroke:C.edge, "stroke-width":1.4});
-  add("circle",{cx:36, cy:-2, r:2.2, fill:C.faceInk}); add("circle",{cx:46, cy:-2, r:2.2, fill:C.faceInk});
-  add("path",{d:"M37.5 4.5 A4 4 0 0 0 44.5 4.5", fill:"none", stroke:C.faceInk, "stroke-width":1.6});
-  for (const x of [-34,34]){ add("circle",{cx:x, cy:12, r:12, fill:"#2a2f3a"}); add("circle",{cx:x, cy:12, r:6, fill:"var(--steel)"}); }
+  el(body,"rect",{x:-61, y:7.5, width:7, height:3, rx:1.2, fill:"#5a6170"});     // tailpipe
+  el(body,"path",{d:B.shell, fill:C.colour, stroke:C.edge, "stroke-width":1.6});
+  el(body,"path",{d:arch(-34)+" "+arch(34), fill:"#22262e"});
+  for (const g of B.glass) el(body,"path",{d:g, fill:"var(--sky)"});
+  el(body,"path",{d:B.lines, fill:"none", stroke:C.edge, "stroke-width":1.4});
+  if (B.strip) el(body,"path",{d:B.strip, fill:"none", stroke:"rgba(30,34,44,.75)", "stroke-width":2.4});
+  if (B.tail) el(body,"path",{d:B.tail, fill:"#c0392b"});
+  el(body,"path",{d:B.lamp, fill:"#fff7c2", stroke:C.edge, "stroke-width":1.4});
+  el(body,"circle",{cx:36, cy:-2, r:2.2, fill:C.faceInk}); el(body,"circle",{cx:46, cy:-2, r:2.2, fill:C.faceInk});
+  el(body,"path",{d:"M37.5 4.5 A4 4 0 0 0 44.5 4.5", fill:"none", stroke:C.faceInk, "stroke-width":1.6});
+  for (const x of [-34,34]){ el(car,"circle",{cx:x, cy:12, r:12, fill:"#2a2f3a"}); el(car,"circle",{cx:x, cy:12, r:6, fill:"var(--steel)"}); }
+  scenes.push({body, smoke, puffs:[], next:Math.random()*400, phase:Math.random()*6.28, el});
+}
+if (!calm){
+  let last = performance.now();
+  const tick = now => {
+    const dt = Math.min(50, now-last); last = now;
+    for (const s of scenes){
+      // engine shake: a small, fast rock on the suspension
+      s.phase += dt*0.09;
+      const y = Math.sin(s.phase)*0.45, r = Math.sin(s.phase*0.5)*0.25;
+      s.body.setAttribute("transform", `translate(0 ${y.toFixed(2)}) rotate(${r.toFixed(2)} 0 0)`);
+      // exhaust: a puff every ~0.3 s that drifts back, rises, grows and fades
+      s.next -= dt;
+      if (s.next <= 0){
+        s.next = 220 + Math.random()*180;
+        const c = s.el(s.smoke,"circle",{cx:-62, cy:9, r:2, fill:"#aeb6c4"});
+        s.puffs.push({c, x:-62, y:9, r:2, a:0.55, vx:-(0.012+Math.random()*0.01), vy:-(0.006+Math.random()*0.006)});
+      }
+      for (const p of s.puffs){
+        p.x += p.vx*dt; p.y += p.vy*dt; p.r += 0.006*dt; p.a -= 0.00042*dt;
+        p.c.setAttribute("cx",p.x.toFixed(1)); p.c.setAttribute("cy",p.y.toFixed(1));
+        p.c.setAttribute("r",p.r.toFixed(1)); p.c.setAttribute("opacity",Math.max(0,p.a).toFixed(2));
+      }
+      s.puffs = s.puffs.filter(p => { if (p.a<=0){ p.c.remove(); return false; } return true; });
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 </script>
 </body>
