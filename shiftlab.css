@@ -1,0 +1,101 @@
+
+/* Layout: toy-workshop dashboard. Road strip on top, gearbox cutaway + gauges, then the driver's controls (pedals + H-gate) along the bottom like a cockpit. */
+:root{
+  --bg:#e9eef6; --surface:#ffffff; --surface-2:#f4f7fb; --ink:#1f2a3c; --muted:#66758c; --line:#d5deea;
+  --input:#5b8def; --output:#2fb894; --free:#f2bf47; --brass:#d68d32; --accent:#ff7445; --reverse:#a184ee;
+  --danger:#e4486a; --ok:#2fb894; --sky:#cfe3fb; --hill:#bfe3cf; --road:#5d6b80; --casing:#f6f2ff; --steel:#a8b3c4;
+  --font-display:"Fredoka","Nunito","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --radius:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121725; --surface:#1b2233; --surface-2:#222b3f; --ink:#e8edf6; --muted:#9aa7bd; --line:#2e3950;
+  --input:#7aa5ff; --output:#46d1aa; --free:#f5cb62; --brass:#e9a24c; --accent:#ff8a5c; --reverse:#b7a0ff;
+  --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121725; --surface:#1b2233; --surface-2:#222b3f; --ink:#e8edf6; --muted:#9aa7bd; --line:#2e3950;
+  --input:#7aa5ff; --output:#46d1aa; --free:#f5cb62; --brass:#e9a24c; --accent:#ff8a5c; --reverse:#b7a0ff;
+  --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45}
+.app{max-width:1320px;margin:0 auto;padding-inline:16px;padding-block:14px 28px;display:grid;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand h1{font-family:var(--font-display);font-weight:700;font-size:1.75rem;margin:0;letter-spacing:.2px;text-wrap:balance}
+.brand p{margin:0;color:var(--muted);font-size:.92rem}
+.logo{width:44px;height:44px;flex:none}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-family:var(--font-display);font-weight:600;font-size:.95rem;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+button:hover{border-color:var(--muted)}
+button:focus-visible,.pedal:focus-visible,#gate:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary.off{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:var(--radius)}
+.road{padding:0;overflow:hidden;position:relative}
+#road{display:block;width:100%;height:132px}
+.main{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:14px;align-items:start}
+.col{display:grid;gap:14px;min-width:0}
+.helpcard{padding:12px 16px 16px}
+.tips{display:grid;gap:10px;align-content:center;min-width:0}
+.cutaway{padding:12px 12px 6px;min-width:0}
+.cutaway h2,.side h2,.controls h2{font-family:var(--font-display);font-weight:600;font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:2px 6px 8px}
+.boxwrap{overflow-x:auto;max-width:100%}
+#box{display:block;width:100%;aspect-ratio:1040/520;min-width:640px}
+.side{display:grid;gap:14px;min-width:0;align-content:start}
+.gauges{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gauges canvas{width:100%;aspect-ratio:1/1;display:block;max-width:100%}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 12px}
+.chip{background:var(--surface-2);border-radius:12px;padding:7px 10px;min-width:0}
+.chip b{display:block;font-family:var(--font-display);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.chip span{font-family:var(--font-mono);font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.chip.warn span{color:var(--danger)}
+.bar{height:7px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:9px;transition:width .2s}
+.coach{padding:12px;display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:start}
+#face{width:92px;height:92px}
+.coach h3{font-family:var(--font-display);font-weight:600;font-size:1.12rem;margin:2px 0 4px;text-wrap:balance}
+.coach h3.bad{color:var(--danger)} .coach h3.good{color:var(--ok)}
+.coach p{margin:0;font-size:.93rem;max-width:62ch}
+.log{grid-column:1/-1;list-style:none;margin:4px 0 0;padding:8px 0 0;border-top:2px dashed var(--line);display:grid;gap:3px;font-size:.82rem;color:var(--muted)}
+.log li{display:flex;gap:8px;min-width:0}
+.log time{font-family:var(--font-mono);flex:none}
+.log span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.controls{padding:12px 14px 14px;display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:18px;align-items:stretch}
+.pedals{display:flex;gap:14px;align-items:flex-end}
+.pedal{width:78px;display:grid;gap:6px;justify-items:center;user-select:none;touch-action:none;cursor:ns-resize;border-radius:14px;padding:4px}
+.pedal .track{position:relative;width:62px;height:178px;border-radius:16px;background:var(--surface-2);border:2px solid var(--line);overflow:hidden}
+.pedal .fill{position:absolute;left:0;right:0;top:0;height:0;background:color-mix(in srgb,var(--pc) 28%,transparent)}
+.pedal .pad{position:absolute;left:6px;right:6px;height:34px;border-radius:11px;background:var(--pc);top:4px;box-shadow:0 4px 0 color-mix(in srgb,var(--pc) 60%,#000 25%);display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;font-size:.8rem}
+.pedal .lbl{font-family:var(--font-display);font-weight:600;font-size:.92rem}
+.pedal .val{font-family:var(--font-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pedal kbd{font-family:var(--font-mono);font-size:.72rem;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 5px;color:var(--muted)}
+#clutchPedal{--pc:var(--input)} #brakePedal{--pc:var(--danger)} #throttlePedal{--pc:var(--ok)}
+.lever{display:grid;justify-items:center;gap:4px}
+#gate{width:190px;height:226px;touch-action:none;cursor:grab;border-radius:16px}
+#gate:active{cursor:grabbing}
+.gearbig{font-family:var(--font-display);font-weight:700;font-size:1rem;color:var(--muted)}
+.gearbig strong{color:var(--accent);font-size:1.5rem;margin-left:4px}
+.help{display:grid;gap:8px;align-content:start;min-width:0;font-size:.9rem}
+.help h2{font-family:var(--font-display);font-weight:600;font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:2px 0 8px}
+.help h2{margin-left:0}
+.keys{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 10px;align-items:center}
+.keys kbd{font-family:var(--font-mono);font-size:.78rem;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:7px;padding:1px 7px;white-space:nowrap;justify-self:start}
+.tip{background:var(--surface-2);border-radius:12px;padding:9px 12px;font-size:.88rem;color:var(--muted);max-width:68ch}
+.tip strong{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted);padding:2px 8px 4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.tips{grid-column:1/-1}}
+@media (max-width:620px){.controls{grid-template-columns:minmax(0,1fr)}.pedals{justify-content:center}.pedal{width:72px}.pedal .track{width:56px;height:150px}.brand h1{font-size:1.4rem}#road{height:110px}.coach{grid-template-columns:70px minmax(0,1fr)}#face{width:70px;height:70px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* car switcher + reverse hint */
+.switch{display:inline-flex;background:var(--surface-2);border:2px solid var(--line);border-radius:999px;padding:3px;gap:3px}
+.switch a{font-family:var(--font-display);font-weight:600;font-size:.92rem;color:var(--muted);text-decoration:none;padding:5px 13px;border-radius:999px;display:inline-flex;align-items:center;gap:7px}
+.switch a:hover{color:var(--ink)}
+.switch a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.switch i{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--muted);display:inline-block}
+.switch a:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.revhint{font-size:.78rem;color:var(--muted);text-align:center;max-width:22ch}
