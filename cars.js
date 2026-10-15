@@ -49,4 +49,28 @@ window.SHIFTLAB_CARS = {
     outNote: "1/2 synchro + R teeth",
     body: "polo", colour: "#f4f5f2", edge: "#7d8798", faceInk: "#1f2a3c",
   },
+  corsa: {
+    id: "corsa",
+    name: "Opel Corsa B 1.2 16V",
+    gearbox: "Opel F13",
+    // F13 5-speed; drawing tooth counts chosen to match the ratios
+    Z: {1:[11,41], 2:[22,47], 3:[29,41], 4:[33,37], 5:[37,33]},
+    ratio: {1:3.727, 2:2.136, 3:1.414, 4:1.121, 5:0.892, R:-3.308},
+    fd: 3.74, fdTeeth: [19,71],             // F13 C374: final drive 3.74
+    tyre: 1.72,                             // m, 165/70 R13
+    mass: 960, cda: 0.64, clutchCap: 190, limit: 6400,
+    // X12XE Ecotec 1.2 16v: 65 hp at 5600 rpm, 110 N·m at 4000 rpm (approximate curve)
+    tq: [[0,0],[400,32],[800,70],[1500,86],[2500,96],[3200,102],[4000,110],[5000,101],[5600,82],[6400,66],[7000,50]],
+    // layout assumed like other transverse 5-speeds of its era (not confirmed for the F13)
+    units: { A:{shaft:"out", gears:{"-1":1,"1":2}}, B:{shaft:"in", gears:{"-1":3,"1":4}}, C:{shaft:"in", gears:{"-1":5}} },
+    planes: { "-2":{up:"R",down:null}, "-1":{unit:"A",up:1,down:2}, "0":{unit:"B",up:3,down:4}, "1":{unit:"C",up:5,down:null} },
+    rev: {plane:-2, dir:-1},
+    lockout5R: false,
+    lockoutText: "",
+    revHint: "Reverse: lift the ring under the knob, then far left and forward.",
+    endHousing: "5th gear in the end cover",
+    inNote: "3/4 + 5th synchros",
+    outNote: "1/2 synchro + R teeth",
+    body: "corsa", colour: "#f6f6f3", edge: "#7d8798", faceInk: "#1f2a3c",
+  },
 };

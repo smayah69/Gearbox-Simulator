@@ -642,7 +642,17 @@ function gauge(id,val,max,red,label,unit,major,fmt){
 function drawCarBody(c){
   const col=CAR.colour, edge=CAR.edge, glass=T.sky;
   c.lineWidth=1.6; c.strokeStyle=edge; c.fillStyle=col;
-  if (CAR.body==="polo"){
+  if (CAR.body==="corsa"){
+    // Corsa B 5-door: round bubbly roof, short bonnet, two door lines
+    rr(c,-57,-15,114,27,13); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(-53,-14); c.quadraticCurveTo(-54,-36,-40,-43); c.quadraticCurveTo(-14,-50,10,-44);
+    c.quadraticCurveTo(20,-40,38,-15); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle=glass;
+    c.beginPath(); c.moveTo(-47,-18); c.quadraticCurveTo(-47,-34,-37,-39); c.lineTo(-19,-41); c.lineTo(-19,-18); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(-14,-18); c.lineTo(-14,-42); c.quadraticCurveTo(2,-43,10,-39); c.quadraticCurveTo(18,-33,29,-18); c.closePath(); c.fill();
+    c.strokeStyle=edge; c.beginPath(); c.moveTo(-16,-13); c.lineTo(-16,8); c.moveTo(-42,-13); c.lineTo(-40,6); c.moveTo(14,-13); c.lineTo(14,8); c.stroke();
+    c.fillStyle="#fff7c2"; c.beginPath(); c.moveTo(47,-9); c.quadraticCurveTo(56,-9,57,-3); c.lineTo(47,-2); c.closePath(); c.fill(); c.strokeStyle=edge; c.stroke();
+  } else if (CAR.body==="polo"){
     // Polo 6N: taller, upright tail, rounder roof, oval headlamps
     rr(c,-57,-16,114,28,11); c.fill(); c.stroke();
     c.beginPath(); c.moveTo(-52,-15); c.lineTo(-50,-42); c.quadraticCurveTo(-48,-47,-40,-47); c.lineTo(8,-47);
