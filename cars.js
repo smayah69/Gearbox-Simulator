@@ -100,4 +100,37 @@ window.SHIFTLAB_CARS = {
     },
     body: "corsa", colour: "#f6f6f3", edge: "#7d8798", faceInk: "#1f2a3c",
   },
+  gx3: {
+    id: "gx3",
+    name: "Geely GX3 2022 1.5",
+    gearbox: "Geely S170B2",
+    // ESTIMATED ratios: the S170B2 ratios are not published; typical 1.5 L compact-SUV values
+    Z: {1:[11,39], 2:[23,44], 3:[29,38], 4:[35,34], 5:[39,31]},
+    ratio: {1:3.545, 2:1.913, 3:1.310, 4:0.971, 5:0.795, R:-3.25},
+    fd: 4.294, fdTeeth: [17,73],            // estimated
+    tyre: 1.99,                             // m, 205/60 R16
+    mass: 1255, cda: 0.72, clutchCap: 240, limit: 6400,
+    // JLγ-4G15 1.5 16v: about 102 hp at 5600 rpm, 142 N·m at 4400 rpm (approximate curve)
+    tq: [[0,0],[400,45],[800,95],[1500,112],[2500,124],[3500,134],[4400,142],[5000,138],[5600,128],[6200,110],[6800,85]],
+    // synchro layout assumed (not published for the S170B2)
+    units: { A:{shaft:"out", gears:{"-1":1,"1":2}}, B:{shaft:"in", gears:{"-1":3,"1":4}}, C:{shaft:"in", gears:{"-1":5}} },
+    planes: { "-1":{unit:"A",up:1,down:2}, "0":{unit:"B",up:3,down:4}, "1":{unit:"C",up:5,down:"R"} },
+    rev: {plane:1, dir:1},
+    lockout5R: false,
+    lockoutText: "",
+    revHint: "Reverse: right plane, then back.",
+    endHousing: "5th gear in the end cover",
+    inNote: "3/4 + 5th synchros (assumed)",
+    outNote: "1/2 synchro (assumed)",
+    // side silhouette (nose to the right), SVG path data; compact crossover
+    shape: {
+      shell: "M-58 6 L-58 -12 Q-58 -16 -56 -18 L-50 -33 Q-47 -38 -40 -38 L0 -38 Q6 -38 10 -34 L26 -18 Q42 -15 53 -12 Q58 -10 58 -4 L58 6 Q58 10 54 10 L-54 10 Q-58 10 -58 6 Z",
+      glass: ["M-48 -20 L-43 -33 L-14 -34 L-14 -20 Z", "M-10 -20 L-10 -34 L-1 -34 Q4 -34 7 -31 L20 -20 Z"],
+      lines: "M-12 -18 L-12 6 M-44 -18 Q-46 -6 -43 4 M22 -18 L21 2 M-39 -33 L-41 -20",
+      strip: "M-55 5 L55 5",
+      lamp: "M44 -13 L57 -9 L57 -6 L46 -9 Z",
+      tail: "M-58 -17 L-55 -18 L-55 -9 L-58 -9 Z",
+    },
+    body: "gx3", colour: "#f7f7f5", edge: "#7d8798", faceInk: "#1f2a3c",
+  },
 };

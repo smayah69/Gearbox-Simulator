@@ -11,8 +11,9 @@ Play it at **https://gear.bombo.fun**:
 - [`/saxo`](https://gear.bombo.fun/saxo): Citroën Saxo 1.1i, PSA MA/5 gearbox
 - [`/polo`](https://gear.bombo.fun/polo): VW Polo 3 (6N2) 1.0, VW 085 gearbox
 - [`/corsa`](https://gear.bombo.fun/corsa): Opel Corsa B 1.2 16V, Opel F13 gearbox
+- [`/gx3`](https://gear.bombo.fun/gx3): Geely GX3 2022 1.5, Geely S170B2 gearbox (estimated ratios)
 
-No build step, no dependencies. To run it locally, serve the folder (for example `python -m http.server`) and open `/saxo/`, `/polo/` or `/corsa/`.
+No build step, no dependencies. To run it locally, serve the folder (for example `python -m http.server`) and open `/saxo/`, `/polo/`, `/corsa/` or `/gx3/`.
 
 You drive the car with the clutch, throttle, brake and an H-pattern lever, and a live cutaway shows what happens inside: synchronisers, blocker rings, dog teeth, the reverse idler and the power flow.
 
@@ -34,7 +35,7 @@ Mistakes are simulated: shifting without the clutch (grinding), reverse while ro
 | File | Purpose |
 |---|---|
 | `index.html` | car chooser |
-| `saxo/`, `polo/`, `corsa/` | simulator pages |
+| `saxo/`, `polo/`, `corsa/`, `gx3/` | simulator pages |
 | `cars.js` | per-car data: ratios, tooth counts, synchro layout, lever gate, engine curve, colours |
 | `shiftlab.js`, `shiftlab.css` | shared simulator engine and styles |
 | `vercel.json` | clean URLs (`/saxo`, `/polo`) |
@@ -70,6 +71,11 @@ python scripts/render_all_gears.py MA5_all_gears.mp4
 - Confirmed in the Corsa B workshop manual (So wird's gemacht, Band 90): F13 gearbox, X12XE engine data, 165/70 R13 tyre option, and the gate with reverse far left and forward of 1st.
 - Reverse: lift the ring under the knob, far left and forward.
 - Synchro layout (1/2 on the output shaft, 3/4 and 5th on the input shaft) is assumed: that manual doesn't cover gearbox internals.
+
+**Geely GX3 2022 1.5 (S170B2)**
+- Engine JLγ-4G15 1.5: about 102 hp at 5600 rpm, 142 N·m at 4400 rpm; kerb weight 1180 kg; tyre 205/60 R16.
+- Geely doesn't publish the S170B2 gear ratios, final drive or synchro layout. The simulator uses estimates typical of a 1.5 L compact-SUV 5-speed (3.545 / 1.913 / 1.310 / 0.971 / 0.795, final drive 4.294).
+- Reverse: right plane, then back.
 
 **All cars**
 - Engine torque curves, vehicle mass and synchro/clutch capacities are approximations.

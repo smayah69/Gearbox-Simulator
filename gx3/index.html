@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GX3 Shift Lab</title>
+<meta name="description" content="Geely GX3 2022 1.5 · Geely S170B2 gearbox (estimated ratios) · you drive, the gears do the rest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="../shiftlab.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="var(--free)"/><g fill="var(--ink)"><circle cx="16" cy="19" r="2.6"/><circle cx="28" cy="19" r="2.6"/></g><path d="M15 27c4 4 10 4 14 0" stroke="var(--ink)" stroke-width="2.6" fill="none" stroke-linecap="round"/><g fill="var(--accent)"><rect x="19" y="-1" width="6" height="7" rx="2"/><rect x="19" y="38" width="6" height="7" rx="2"/><rect x="-1" y="19" width="7" height="6" rx="2"/><rect x="38" y="19" width="7" height="6" rx="2"/></g></svg>
+      <div><h1>Shift Lab</h1><p>Geely GX3 2022 1.5 · Geely S170B2 gearbox (estimated ratios) · you drive, the gears do the rest</p></div>
+    </div>
+    <div class="actions">
+      <nav class="switch" aria-label="Choose a car"><a href="/saxo"><i style="background:#1d3b78"></i>Saxo · MA/5</a><a href="/polo"><i style="background:#f4f5f2"></i>Polo · 085</a><a href="/corsa"><i style="background:#f6f6f3"></i>Corsa · F13</a><a href="/gx3" aria-current="page"><i style="background:#f7f7f5"></i>GX3 · S170B2</a></nav>
+      <button id="startBtn" class="primary" type="button"><span class="dot" id="engDot"></span><span id="startTxt">Start engine</span></button>
+      <button id="soundBtn" type="button" aria-pressed="false">🔈 Sound off</button>
+      <button id="resetBtn" type="button">Reset</button>
+    </div>
+  </header>
+
+  <section class="card road" aria-label="Car on the road"><canvas id="road"></canvas></section>
+
+  <div class="main">
+    <div class="col">
+    <section class="card cutaway" aria-label="Gearbox cutaway">
+      <h2>Inside the gearbox · live</h2>
+      <div class="boxwrap"><canvas id="box"></canvas></div>
+      <div class="legend">
+        <span><i style="background:var(--input)"></i>input shaft</span>
+        <span><i style="background:var(--output)"></i>output shaft</span>
+        <span><i style="background:var(--free)"></i>free gear</span>
+        <span><i style="background:var(--brass)"></i>blocker ring</span>
+        <span><i style="background:var(--reverse)"></i>reverse train</span>
+        <span><i style="background:var(--accent)"></i>power flow</span>
+      </div>
+    </section>
+      <section class="card coach" aria-live="polite" aria-label="Coach">
+        <canvas id="face" width="184" height="184"></canvas>
+        <div>
+          <h3 id="msgTitle">Hi! I'm Gearbo.</h3>
+          <p id="msgText">Press <strong>Start engine</strong>, hold the clutch, pick 1st, then let the clutch up slowly while you add a little throttle.</p>
+        </div>
+        <ol class="log" id="log"></ol>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card" aria-label="Gauges">
+        <div class="gauges"><canvas id="tacho"></canvas><canvas id="speedo"></canvas></div>
+        <div class="chips">
+          <div class="chip" id="chipClutch"><b>Clutch</b><span id="vClutch">engaged</span></div>
+          <div class="chip" id="chipSync"><b>Synchro</b><span id="vSync">idle</span></div>
+          <div class="chip"><b>Input / output</b><span id="vShafts">0 / 0 rpm</span></div>
+          <div class="chip" id="chipTemp"><b>Clutch temp</b><span id="vTemp">40 °C</span></div>
+          <div class="chip" style="grid-column:1/-1"><b>Gearbox health</b><span id="vHealth">100 %</span><div class="bar"><i id="healthBar" style="width:100%"></i></div></div>
+        </div>
+      </section>
+      <section class="card helpcard" aria-label="How to drive">
+    <div class="help">
+      <h2>How to drive</h2>
+      <div class="keys">
+        <kbd>E</kbd><span>start / stop the engine</span>
+        <kbd>Space</kbd><span>hold to press the clutch (it comes up smoothly when you let go)</span>
+        <kbd>W / ↑</kbd><span>throttle · <kbd>S / ↓</kbd> brake</span>
+        <kbd>1–5 · R · N</kbd><span>move the lever (or drag the knob)</span>
+        <kbd>M</kbd><span>sound on / off</span>
+      </div>
+    </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card controls" aria-label="Driver controls">
+    <div>
+      <h2>Pedals</h2>
+      <div class="pedals">
+        <div class="pedal" id="clutchPedal" tabindex="0" role="slider" aria-label="Clutch pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">C</div></div><span class="lbl">Clutch</span><span class="val">0 %</span><kbd>Space</kbd></div>
+        <div class="pedal" id="brakePedal" tabindex="0" role="slider" aria-label="Brake pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">B</div></div><span class="lbl">Brake</span><span class="val">0 %</span><kbd>S / ↓</kbd></div>
+        <div class="pedal" id="throttlePedal" tabindex="0" role="slider" aria-label="Throttle pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">A</div></div><span class="lbl">Throttle</span><span class="val">0 %</span><kbd>W / ↑</kbd></div>
+      </div>
+    </div>
+    <div class="lever">
+      <h2>Gear lever</h2>
+      <svg id="gate" viewBox="0 0 200 240" tabindex="0" role="application" aria-label="H-pattern gear lever. Drag the knob, or use keys 1 to 5, R and N."></svg>
+      <div class="gearbig">Gear<strong id="gearTxt">N</strong></div>
+      <div class="revhint" id="revHint"></div>
+    </div>
+    <div class="tips">
+      <div class="tip"><strong>Mouse only?</strong> Pedals act like sliders: drag the clutch down, move the lever, then drag the clutch back up slowly. Keyboard keys work at the same time.</div>
+      <div class="tip"><strong>Try the mistakes:</strong> shift without the clutch, pick reverse while rolling, drop the clutch at idle in 3rd, or change down to 1st at 80 km/h. Gearbo will tell you what happened inside.</div>
+    </div>
+  </section>
+</div>
+
+
+<script src="../cars.js"></script>
+<script>window.SHIFTLAB_CAR = "gx3";</script>
+<script src="../shiftlab.js"></script>
+</body>
+</html>

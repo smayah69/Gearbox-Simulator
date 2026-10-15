@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Shift Lab</title>
-<meta name="description" content="Drive a real 5-speed manual gearbox in your browser: clutch, throttle, lever, and a live cutaway of the synchros. Citroën Saxo MA/5, VW Polo 085 or Opel Corsa F13.">
+<meta name="description" content="Drive a real 5-speed manual gearbox in your browser: clutch, throttle, lever, and a live cutaway of the synchros. Citroën Saxo MA/5, VW Polo 085 or Opel Corsa F13 or Geely GX3.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}[hidden]{display:none!important}</style>
 <link rel="stylesheet" href="shiftlab.css">
 <style>
-.home{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:28px 40px;display:grid;gap:26px}
+.home{max-width:1440px;margin:0 auto;padding-inline:16px;padding-block:28px 40px;display:grid;gap:26px}
 .hero{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .hero .logo{width:64px;height:64px}
 .hero h1{font-family:var(--font-display);font-weight:700;font-size:2.4rem;margin:0;text-wrap:balance}
 .hero p{margin:4px 0 0;color:var(--muted);font-size:1.02rem;max-width:60ch}
-.cars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.cars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
 .carcard{background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:18px 20px 20px;display:grid;gap:12px;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}
 .carcard:hover{transform:translateY(-3px);border-color:var(--accent)}
 .carcard:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
@@ -29,7 +29,7 @@
 .go{justify-self:start;font-family:var(--font-display);font-weight:600;background:var(--accent);color:#fff;border-radius:999px;padding:8px 18px}
 .foot{color:var(--muted);font-size:.85rem}
 .foot a{color:var(--ink)}
-@media (max-width:1000px){.cars{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1240px){.cars{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:680px){.cars{grid-template-columns:minmax(0,1fr)}.hero h1{font-size:1.9rem}}
 @media (prefers-reduced-motion:reduce){.carcard{transition:none}.carcard:hover{transform:none}}
 </style>
@@ -82,8 +82,20 @@
       </dl>
       <span class="go">Drive the Corsa →</span>
     </a>
+    <a class="carcard" href="/gx3">
+      <svg class="scene" viewBox="-110 -62 220 96" role="img" aria-label="White Geely GX3 crossover" data-car="gx3"><rect x="-110" y="8" width="220" height="30" fill="var(--road)"/></svg>
+      <h2>Geely GX3 2022 1.5</h2>
+      <p class="sub">Geely S170B2 gearbox</p>
+      <dl class="facts">
+        <dt>Engine</dt><dd>JLγ-4G15 1.5 · 102 hp</dd>
+        <dt>Ratios</dt><dd>estimated: 3.55 · 1.91 · 1.31 · 0.97 · 0.80</dd>
+        <dt>Synchros</dt><dd>1/2 on output · 3/4 + 5th on input*</dd>
+        <dt>Reverse</dt><dd>right plane, back</dd>
+      </dl>
+      <span class="go">Drive the GX3 →</span>
+    </a>
   </div>
-  <p class="foot">Keys: <strong>E</strong> engine · <strong>Space</strong> clutch · <strong>W</strong> throttle · <strong>S</strong> brake · <strong>1–5, R, N</strong> gears. Source on <a href="https://github.com/smayah69/gearbox_ma5">GitHub</a>. *Corsa synchro layout is assumed: the Corsa B workshop manual (So wird's gemacht, Band 90) confirms the F13 gearbox and gate but doesn't cover gearbox internals.</p>
+  <p class="foot">Keys: <strong>E</strong> engine · <strong>Space</strong> clutch · <strong>W</strong> throttle · <strong>S</strong> brake · <strong>1–5, R, N</strong> gears. Source on <a href="https://github.com/smayah69/gearbox_ma5">GitHub</a>. *Corsa synchro layout is assumed: the Corsa B workshop manual (So wird's gemacht, Band 90) confirms the F13 gearbox and gate but doesn't cover gearbox internals. GX3: Geely doesn't publish the S170B2's gear ratios or synchro layout, so those are estimates.</p>
 </main>
 <script src="cars.js"></script>
 <script>
