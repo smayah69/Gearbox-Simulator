@@ -13,6 +13,10 @@ window.SHIFTLAB_CARS = {
     mass: 960, cda: 0.61, clutchCap: 170, limit: 6300,
     // TU1JP 1.1 8v, approximate full-throttle torque curve (rpm, N·m)
     tq: [[0,0],[400,30],[800,62],[1500,74],[2500,84],[3400,90],[4500,86],[5500,76],[6300,64],[7200,45]],
+    // nitrous kit (game add-on): extra N·m at full throttle, seconds per bottle, seconds to refill
+    nos: {tq:70, time:7, refill:20},
+    // engine sound: TU1JP 8v, buzzy and raspy with overrun pops
+    sound: {wave:"sawtooth", sub:0.45, harm:[2,0.25,"square"], cutoff:520, open:1900, q:5, drive:0.35, rasp:0.10, raspHz:1400, burble:0.22, whine:0, pops:0.6, starter:36, vol:1},
     // all three synchronisers on the output shaft
     units: { A:{shaft:"out", gears:{"-1":1,"1":2}}, B:{shaft:"out", gears:{"-1":3,"1":4}}, C:{shaft:"out", gears:{"-1":5}} },
     planes: { "-1":{unit:"A",up:1,down:2}, "0":{unit:"B",up:3,down:4}, "1":{unit:"C",up:5,down:"R"} },
@@ -46,6 +50,10 @@ window.SHIFTLAB_CARS = {
     mass: 1057, cda: 0.67, clutchCap: 170, limit: 6000,
     // AUC / ALD 1.0 8v: 50 hp at 5000 rpm, 86 N·m at 3000-3600 rpm (approximate curve)
     tq: [[0,0],[400,30],[800,62],[1500,74],[2500,82],[3000,86],[3600,86],[4300,80],[5000,72],[5700,60],[6500,42]],
+    // nitrous kit (game add-on): extra N·m at full throttle, seconds per bottle, seconds to refill
+    nos: {tq:65, time:7, refill:20},
+    // engine sound: AUC 1.0 8v, low and thrummy, lumpy at idle
+    sound: {wave:"square", sub:0.7, harm:[1.5,0.2,"triangle"], cutoff:360, open:1100, q:3, drive:0.2, rasp:0.04, raspHz:700, burble:0.4, whine:0, pops:0.15, starter:30, vol:1.05},
     // 1/2 synchro on the output shaft (its sleeve carries the reverse teeth); 3/4 and 5th on the input shaft
     units: { A:{shaft:"out", gears:{"-1":1,"1":2}}, B:{shaft:"in", gears:{"-1":3,"1":4}}, C:{shaft:"in", gears:{"-1":5}} },
     planes: { "-2":{up:"R",down:null}, "-1":{unit:"A",up:1,down:2}, "0":{unit:"B",up:3,down:4}, "1":{unit:"C",up:5,down:null} },
@@ -79,6 +87,10 @@ window.SHIFTLAB_CARS = {
     mass: 960, cda: 0.64, clutchCap: 190, limit: 6400,
     // X12XE Ecotec 1.2 16v: 65 hp at 5600 rpm, 110 N·m at 4000 rpm (approximate curve)
     tq: [[0,0],[400,32],[800,70],[1500,86],[2500,96],[3200,102],[4000,110],[5000,101],[5600,82],[6400,66],[7000,50]],
+    // nitrous kit (game add-on): extra N·m at full throttle, seconds per bottle, seconds to refill
+    nos: {tq:80, time:7, refill:20},
+    // engine sound: X12XE 16v, revvy with a bright top end and intake roar
+    sound: {wave:"sawtooth", sub:0.3, harm:[2,0.35,"sawtooth"], cutoff:700, open:2600, q:6, drive:0.45, rasp:0.07, raspHz:2200, burble:0.12, whine:0.035, whineMul:4, pops:0.35, starter:42, vol:0.95},
     // layout assumed like other transverse 5-speeds of its era (the So wird's gemacht manual doesn't cover F13 internals)
     units: { A:{shaft:"out", gears:{"-1":1,"1":2}}, B:{shaft:"in", gears:{"-1":3,"1":4}}, C:{shaft:"in", gears:{"-1":5}} },
     planes: { "-2":{up:"R",down:null}, "-1":{unit:"A",up:1,down:2}, "0":{unit:"B",up:3,down:4}, "1":{unit:"C",up:5,down:null} },
@@ -112,6 +124,10 @@ window.SHIFTLAB_CARS = {
     mass: 1255, cda: 0.72, clutchCap: 240, limit: 6400,
     // JLγ-4G15 1.5 16v: about 102 hp at 5600 rpm, 142 N·m at 4400 rpm (approximate curve)
     tq: [[0,0],[400,45],[800,95],[1500,112],[2500,124],[3500,134],[4400,142],[5000,138],[5600,128],[6200,110],[6800,85]],
+    // nitrous kit (game add-on): extra N·m at full throttle, seconds per bottle, seconds to refill
+    nos: {tq:95, time:8, refill:20},
+    // engine sound: JLγ-4G15, smooth and muted, a faint chain whine
+    sound: {wave:"triangle", sub:0.55, harm:[2,0.18,"sine"], cutoff:440, open:1300, q:1.5, drive:0.08, rasp:0.02, raspHz:900, burble:0.06, whine:0.03, whineMul:7, pops:0, starter:48, vol:0.85},
     // synchro layout assumed (not published for the S170B2)
     units: { A:{shaft:"out", gears:{"-1":1,"1":2}}, B:{shaft:"in", gears:{"-1":3,"1":4}}, C:{shaft:"in", gears:{"-1":5}} },
     planes: { "-1":{unit:"A",up:1,down:2}, "0":{unit:"B",up:3,down:4}, "1":{unit:"C",up:5,down:"R"} },

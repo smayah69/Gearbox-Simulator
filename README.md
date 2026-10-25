@@ -23,6 +23,7 @@ You work the clutch, throttle, brake and an H-pattern gear lever. A live cutaway
 | `Space` | hold to press the clutch (it comes up smoothly when released) |
 | `W` / `↑` | throttle |
 | `S` / `↓` | brake |
+| `Shift` | hold for nitrous (with the throttle down; or hold the **NOS** button) |
 | `1`–`5`, `R`, `N` | move the gear lever (or drag the knob) |
 | `M` | sound on / off |
 
@@ -41,6 +42,8 @@ With a mouse or touch screen only, the pedals work as sliders.
   - over-revving on a downshift;
   - lugging and clutch overheating;
   - the Saxo's 5th → reverse lockout.
+- **Nitrous (game add-on):** hold `Shift` with the throttle pressed, above 1,200 rpm, for extra torque. The bottle drains in 7–8 s and refills when you let go.
+- **Engine sound:** each car has its own voice, set in `cars.js`: the Saxo is buzzy and raspy with overrun pops, the Polo low and thrummy, the Corsa 16v revvy and bright, the GX3 smooth and muted.
 
 ## Run locally
 
@@ -57,14 +60,14 @@ python -m http.server 8000
 |---|---|
 | `index.html` | car chooser (home page) |
 | `saxo/`, `polo/`, `corsa/`, `gx3/` | one simulator page per car |
-| `cars.js` | per-car data: ratios, tooth counts, final drive, tyre, mass, torque curve, synchro layout, lever gate, colours and side silhouette |
+| `cars.js` | per-car data: ratios, tooth counts, final drive, tyre, mass, torque curve, nitrous kit, engine sound, synchro layout, lever gate, colours and side silhouette |
 | `shiftlab.js`, `shiftlab.css` | shared simulator engine and styles |
 | `vercel.json` | clean URLs (`/saxo`, `/polo`, …) |
 | `scripts/` | Python scripts that render the MA/5 explainer videos |
 
 ### Adding a car
 
-1. Add an entry to `cars.js`. Copy an existing one and change the ratios, final drive, tyre, mass, torque curve, which shaft each synchroniser sits on (`units`), the lever gate (`planes`, `rev`) and the body `shape`.
+1. Add an entry to `cars.js`. Copy an existing one and change the ratios, final drive, tyre, mass, torque curve, which shaft each synchroniser sits on (`units`), the lever gate (`planes`, `rev`), the nitrous kit (`nos`), the engine voice (`sound`) and the body `shape`.
 2. Copy one of the car folders, then change its `<title>`, subtitle and `window.SHIFTLAB_CAR`.
 3. Add the car to the switcher on every page and a card on `index.html`.
 

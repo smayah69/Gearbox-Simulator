@@ -12,6 +12,7 @@ const RPM = w => w*60/(2*Math.PI), RAD = r => r*2*Math.PI/60;
 const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
 const ss = x => { x = clamp(x,0,1); return x*x*(3-2*x); };
 const TQ = CAR.tq;
+const NOS = CAR.nos || {tq:60, time:7, refill:20};   // nitrous: extra N·m, seconds per bottle, seconds to refill
 function tmax(r){ if (r<=0) return 0; for (let i=1;i<TQ.length;i++){ if (r<=TQ[i][0]){ const [a,ta]=TQ[i-1],[b,tb]=TQ[i]; return ta+(tb-ta)*(r-a)/(b-a);} } return TQ[TQ.length-1][1]; }
 // synchro units: A = 1/2, B = 3/4, C = 5th; each sits on the input or output shaft (CAR.units[k].shaft)
 const UNITS = CAR.units;
@@ -31,6 +32,7 @@ function fresh(){
     ri:0, riSt:"free", riBt:0,
     lever:{x:0, y:0, drag:false, kb:null, kbT:0, lockR:false},
     Tc:0, temp:40, health:100, grinding:0, grindWhy:"", syncing:null, syncT:0, overrevT:-9, limT:0, lugT:0,
+    nos:{key:false, ptr:false, lvl:1, on:false},
     engagedSince:0, lastGear:"N", time:0, shake:0, puffs:[], sparks:[], stallT:-9,
   };
 }
@@ -186,23 +188,32 @@ function leverUI(){
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 addEventListener("keydown",e=>{
   if (e.target && (e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")) return;
-  const k=e.key.toLowerCase();
-  if (k===" "||k==="c"){ S.clutch.key=true; S.clutch.manual=false; e.preventDefault(); }
+  const k=e.key.toLowerCase(), dig=/^Digit\d$/.test(e.code) ? e.code.slice(5) : k; // Shift+1 still means 1st
+  if (k==="shift"){ S.nos.key=true; }
+  else if (k===" "||k==="c"){ S.clutch.key=true; S.clutch.manual=false; e.preventDefault(); }
   else if (k==="w"||k==="arrowup"){ S.thr.key=true; S.thr.manual=false; e.preventDefault(); }
   else if (k==="s"||k==="arrowdown"){ S.brk.key=true; S.brk.manual=false; e.preventDefault(); }
-  else if ("12345".includes(k) && k.length===1){ selectGear(+k); }
+  else if ("12345".includes(dig) && dig.length===1){ selectGear(+dig); }
   else if (k==="r"){ selectGear("R"); }
-  else if (k==="n"||k==="0"){ selectGear("N"); }
+  else if (k==="n"||dig==="0"){ selectGear("N"); }
   else if (k==="e" && !e.repeat){ toggleEngine(); }
   else if (k==="m" && !e.repeat){ toggleSound(); }
 });
 addEventListener("keyup",e=>{
   const k=e.key.toLowerCase();
-  if (k===" "||k==="c") S.clutch.key=false;
+  if (k==="shift") S.nos.key=false;
+  else if (k===" "||k==="c") S.clutch.key=false;
   else if (k==="w"||k==="arrowup") S.thr.key=false;
   else if (k==="s"||k==="arrowdown") S.brk.key=false;
 });
-addEventListener("blur",()=>{ S.clutch.key=S.thr.key=S.brk.key=false; });
+addEventListener("blur",()=>{ S.clutch.key=S.thr.key=S.brk.key=S.nos.key=S.nos.ptr=false; });
+
+// ---- nitrous button (hold) ----
+const nosBtn=document.getElementById("nosBtn"), nosFill=document.getElementById("nosFill");
+if (nosBtn){
+  nosBtn.addEventListener("pointerdown",e=>{ nosBtn.setPointerCapture(e.pointerId); S.nos.ptr=true; e.preventDefault(); });
+  for (const ev of ["pointerup","pointercancel","lostpointercapture"]) nosBtn.addEventListener(ev,()=>{ S.nos.ptr=false; });
+}
 
 // ---- engine start ----
 const startBtn=document.getElementById("startBtn"), startTxt=document.getElementById("startTxt"), engDot=document.getElementById("engDot");
@@ -305,6 +316,11 @@ function physics(dt){
   if (S.engineOn) Te = thr*tmax(rpm) - fric;
   else Te = -fric*clamp(S.we/3,0,1);
   if (S.cranking>0){ Te += 45; }
+  // nitrous: only fires with the engine running, real throttle, above 1,200 rpm and below the limiter
+  const nosWant = S.nos.key||S.nos.ptr;
+  S.nos.on = nosWant && S.engineOn && S.nos.lvl>0 && S.thr.v>0.2 && rpm>1200 && rpm<LIMIT;
+  if (S.nos.on){ Te += NOS.tq*S.thr.v; S.nos.lvl=Math.max(0,S.nos.lvl-dt/NOS.time); }
+  else if (!nosWant) S.nos.lvl=Math.min(1,S.nos.lvl+dt/NOS.refill);
   // downstream
   let Jd, Tload, Tsync=0, rg=null;
   if (eg){
@@ -383,6 +399,13 @@ function monitors(dt){
   if (S.engineOn && rpm>LIMIT-50 && S.thr.v>0.5){ S.limT+=dt; if (S.limT>0.6) say("limiter","Bouncing off the limiter",fmt(LIMIT)+" rpm is the fuel cut-off. Press the clutch and shift up.","info",5); } else S.limT=0;
   if (eg && eg.gear!=="R" && S.engineOn && clutchCap()>150 && rpm<1100 && S.thr.v>0.6 && Math.abs(S.we-S.wi)<2){ S.lugT+=dt; if(S.lugT>1.2) say("lug","Lugging the engine","Full throttle below 1,100 rpm strains the engine and gearbox. Change down a gear.","info",6); } else S.lugT=0;
   if (S.temp>230) say("hot","Clutch is smoking","You've been slipping the clutch for a long time. Let it fully up or fully down; the friction plate is near "+Math.round(S.temp)+" °C.","bad",6);
+  if (S.nos.key||S.nos.ptr){
+    if (!S.engineOn) say("nosOff","Nitrous needs a running engine","Start the engine (E), pick a gear, then hold Shift with the throttle down.","info",5);
+    else if (S.nos.lvl<=0) say("nosEmpty","Nitrous bottle empty","Let go of Shift and the bottle refills in about "+NOS.refill+" s.","info",5);
+    else if (S.thr.v<=0.2) say("nosThr","Add throttle for nitrous","Nitrous only fires with the throttle pressed. Hold W as well as Shift.","info",5);
+    else if (S.nos.on && (!eg || clutchCap()<20)) say("nosN","Nitrous with nothing to push","No gear is driving the wheels, so the extra torque only spins the engine up to the limiter.","info",5);
+    else if (S.nos.on) say("nos","Nitrous!","Nitrous oxide brings extra oxygen so the engine burns more fuel: about +"+NOS.tq+" N·m at full throttle. The bottle lasts "+NOS.time+" s.","good",8);
+  }
   if (!S.engineOn && S.cranking<=0 && S.thr.v>0.5 && S.time-S.stallT>1.5) say("thrOff","Engine is off","Throttle does nothing without the engine running. Press Start (E).","info",6);
   if (eg && eg.gear===1 && kmh>3 && S.lastGear!=="1") {}
   const gname = eg ? String(eg.gear) : "N";
@@ -393,21 +416,39 @@ function monitors(dt){
 // ================= audio =================
 let AC=null, au={};
 const soundBtn=document.getElementById("soundBtn");
+const SND = Object.assign({wave:"sawtooth", sub:0.5, harm:[2,0,"square"], cutoff:300, open:1600, q:4, drive:0, rasp:0, raspHz:1200,
+  burble:0, whine:0, whineMul:6, pops:0, starter:33, vol:1}, CAR.sound||{});   // per-car engine voice (cars.js)
+function driveCurve(k){ // soft clip; k = 0 leaves the wave untouched
+  const n=1024, c=new Float32Array(n), a=k*40;
+  for (let i=0;i<n;i++){ const x=i/(n-1)*2-1; c[i]=(1+a)*x/(1+a*Math.abs(x)); }
+  return c;
+}
 function initAudio(){
   try{
     AC=new (window.AudioContext||window.webkitAudioContext)();
-    const master=AC.createGain(); master.gain.value=0.6; master.connect(AC.destination);
-    const lp=AC.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=600; lp.Q.value=4;
-    const eg=AC.createGain(); eg.gain.value=0; lp.connect(eg); eg.connect(master);
-    const o1=AC.createOscillator(); o1.type="sawtooth"; const o2=AC.createOscillator(); o2.type="square";
-    const g2=AC.createGain(); g2.gain.value=0.5; o1.connect(lp); o2.connect(g2); g2.connect(lp); o1.start(); o2.start();
+    const osc=type=>{ const o=AC.createOscillator(); o.type=type; o.start(); return o; };
+    const gain=v=>{ const g=AC.createGain(); g.gain.value=v; return g; };
+    const filt=(type,f,q)=>{ const b=AC.createBiquadFilter(); b.type=type; b.frequency.value=f; b.Q.value=q; return b; };
+    const master=gain(0.6); master.connect(AC.destination);
+    // engine: firing order + half order + one harmonic → grit → lowpass → burble (uneven firing) → level
+    const [hm,hg,ht]=SND.harm;
+    const mix=gain(SND.vol*1.5/(1+SND.sub+hg)), sh=AC.createWaveShaper(); sh.curve=driveCurve(SND.drive); sh.oversample="2x";
+    const lp=filt("lowpass",600,SND.q), amp=gain(1-SND.burble/2), eg=gain(0);
+    mix.connect(sh); sh.connect(lp); lp.connect(amp); amp.connect(eg); eg.connect(master);
+    const o1=osc(SND.wave), o2=osc("square"), o3=osc(ht), g2=gain(SND.sub), g3=gain(hg);
+    o1.connect(mix); o2.connect(g2); g2.connect(mix); o3.connect(g3); g3.connect(mix);
+    const lfo=osc("sine"), lg=gain(SND.burble/2); lfo.connect(lg); lg.connect(amp.gain);
+    const ow=osc("sine"), wg=gain(0); ow.connect(wg); wg.connect(master);          // intake / chain whine
     const len=AC.sampleRate*1, buf=AC.createBuffer(1,len,AC.sampleRate), d=buf.getChannelData(0);
     for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
-    const nz=AC.createBufferSource(); nz.buffer=buf; nz.loop=true;
-    const bp=AC.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=2600; bp.Q.value=2.5;
-    const gg=AC.createGain(); gg.gain.value=0; nz.connect(bp); bp.connect(gg); gg.connect(master); nz.start();
-    const st=AC.createOscillator(); st.type="square"; st.frequency.value=40; const sg=AC.createGain(); sg.gain.value=0; st.connect(sg); sg.connect(lp); st.start();
-    au={master,lp,eg,o1,o2,gg,bp,sg,st};
+    const nz=AC.createBufferSource(); nz.buffer=buf; nz.loop=true; nz.start();
+    const noise=(f,g)=>{ f.connect(g); g.connect(master); nz.connect(f); return g; };
+    const rbp=filt("bandpass",SND.raspHz,1.2), rg=noise(rbp,gain(0));                // exhaust rasp
+    const bp=filt("bandpass",2600,2.5), gg=noise(bp,gain(0));                         // grinding
+    const hp=filt("highpass",3800,0.7), ng=noise(hp,gain(0));                         // nitrous hiss
+    const pbp=filt("bandpass",800,0.9), pg=noise(pbp,gain(0));                        // overrun pops
+    const st=osc("square"); st.frequency.value=SND.starter; const sg=gain(0); st.connect(sg); sg.connect(mix);
+    au={master,lp,eg,o1,o2,o3,lfo,ow,wg,rbp,rg,gg,bp,ng,pbp,pg,sg,st};
   }catch(e){ AC=null; }
 }
 function toggleSound(){
@@ -420,23 +461,37 @@ function toggleSound(){
   soundBtn.setAttribute("aria-pressed", String(!!S.sound));
 }
 soundBtn.addEventListener("click",toggleSound);
+let popT=9, prevThr=0, lastAT=0;
 function audioTick(){
   if (!AC || !S.sound) return;
-  const t=AC.currentTime, rpm=RPM(S.we), f=Math.max(8,rpm/30);
-  au.o1.frequency.setTargetAtTime(f,t,0.02); au.o2.frequency.setTargetAtTime(f/2,t,0.02);
-  au.lp.frequency.setTargetAtTime(300+S.thr.v*1600+rpm*0.12,t,0.05);
-  const on = (S.engineOn||rpm>100) ? (0.06+0.14*S.thr.v)*clamp(rpm/600,0,1) : 0;
+  const t=AC.currentTime, dt=clamp(t-lastAT,0,0.1), rpm=RPM(S.we), f=Math.max(8,rpm/30), nos=S.nos.on; lastAT=t;
+  const run = S.engineOn||rpm>100;
+  au.o1.frequency.setTargetAtTime(f,t,0.02); au.o2.frequency.setTargetAtTime(f/2,t,0.02); au.o3.frequency.setTargetAtTime(f*SND.harm[0],t,0.02);
+  au.lfo.frequency.setTargetAtTime(f/2,t,0.02); au.ow.frequency.setTargetAtTime(f*SND.whineMul,t,0.02);
+  au.lp.frequency.setTargetAtTime(SND.cutoff+S.thr.v*SND.open+rpm*0.12+(nos?700:0),t,0.05);
+  const on = run ? (0.06+0.14*S.thr.v)*clamp(rpm/600,0,1)*(nos?1.25:1) : 0;
   au.eg.gain.setTargetAtTime(on,t,0.05);
-  au.sg.gain.setTargetAtTime(S.cranking>0?0.12:0,t,0.03); au.st.frequency.setTargetAtTime(28+Math.random()*10,t,0.02);
+  au.rg.gain.setTargetAtTime(S.engineOn ? SND.rasp*S.thr.v*clamp(rpm/1500,0,1) : 0,t,0.05); au.rbp.frequency.setTargetAtTime(SND.raspHz+rpm*0.15,t,0.05);
+  au.wg.gain.setTargetAtTime(run ? SND.whine*clamp(rpm/LIMIT,0,1) : 0,t,0.05);
+  au.sg.gain.setTargetAtTime(S.cranking>0?0.12:0,t,0.03); au.st.frequency.setTargetAtTime(SND.starter*(0.85+Math.random()*0.3),t,0.02);
   const gr = S.grinding>0.05 ? 0.18+0.14*Math.random() : 0;
   au.gg.gain.setTargetAtTime(gr,t,0.015); au.bp.frequency.setTargetAtTime(1800+Math.random()*1800,t,0.01);
+  au.ng.gain.setTargetAtTime(nos?0.11:0,t,0.04);
+  // overrun pops: a short window after lifting off the throttle at high revs
+  if (prevThr>0.3 && S.thr.v<0.1 && rpm>2800) popT=0;
+  prevThr=S.thr.v; popT+=dt;
+  if (SND.pops && S.engineOn && popT<1.5 && rpm>2000 && S.thr.v<0.1 && Math.random()<SND.pops*0.25){
+    au.pbp.frequency.setValueAtTime(500+Math.random()*600,t);
+    au.pg.gain.cancelScheduledValues(t); au.pg.gain.setValueAtTime(0.25+0.2*Math.random(),t);
+    au.pg.gain.exponentialRampToValueAtTime(0.0005,t+0.05+0.04*Math.random());
+  }
 }
 
 // ================= drawing =================
 let T={};
 function readTokens(){
   const cs=getComputedStyle(document.documentElement);
-  for (const k of ["bg","surface","surface-2","ink","muted","line","input","output","free","brass","accent","reverse","danger","ok","sky","hill","road","casing","steel"]) T[k]=cs.getPropertyValue("--"+k).trim();
+  for (const k of ["bg","surface","surface-2","ink","muted","line","input","output","free","brass","accent","reverse","danger","ok","sky","hill","road","casing","steel","nitrous"]) T[k]=cs.getPropertyValue("--"+k).trim();
 }
 readTokens();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",readTokens);
@@ -697,18 +752,30 @@ function drawRoad(){
   for (const p of S.puffs){ p.x-=0.6+S.v*0.3; p.y-=0.25; p.r+=0.25; p.a-=0.012; }
   S.puffs=S.puffs.filter(p=>p.a>0).slice(-40);
   for (const p of S.puffs){ c.fillStyle=`rgba(160,170,190,${p.a})`; c.beginPath(); c.arc(p.x,p.y,p.r,0,7); c.fill(); }
+  if (S.nos.on) nosFlame(c);
   drawCarBody(c);
   // wheels
   const wa=S.dist/RW;
   for (const wx of [-34,34]){ c.fillStyle="#2a2f3a"; c.beginPath(); c.arc(wx,12,12,0,7); c.fill(); c.fillStyle=T.steel; c.beginPath(); c.arc(wx,12,6,0,7); c.fill();
     c.strokeStyle="#2a2f3a"; c.lineWidth=2; c.beginPath(); c.moveTo(wx,12); c.lineTo(wx+Math.cos(wa)*6,12+Math.sin(wa)*6); c.stroke(); }
   c.restore();
+  if (S.nos.on && !reduceMotion){ // speed streaks behind the car
+    c.strokeStyle="rgba(255,255,255,.7)"; c.lineWidth=2;
+    for (let i=0;i<6;i++){ const y=30+i*11, x=carX-70-((S.time*520+i*97)%(carX+40)); c.beginPath(); c.moveTo(x,y); c.lineTo(x-26-i*3,y); c.stroke(); }
+  }
   // overlay text
   const kmh=Math.abs(S.v*3.6), eg=engaged();
   c.fillStyle=T.ink; c.font="700 22px Fredoka, Nunito, sans-serif"; c.textAlign="right";
   c.fillText(kmh.toFixed(0)+" km/h"+(S.v<-0.2?" ◀":""),W-16,30);
   c.font="600 12px Nunito, sans-serif"; c.fillStyle=T.muted;
   c.fillText((S.dist/1000).toFixed(2)+" km driven · "+(eg?(eg.gear==="R"?"reverse":eg.gear+ordS(eg.gear)+" gear"):"neutral"),W-16,48);
+}
+
+function nosFlame(c){ // blue-violet nitrous flame from the exhaust (car space, tailpipe at x -58)
+  const L = reduceMotion ? 34 : 26+Math.random()*18, w = reduceMotion ? 5 : 4+Math.random()*2.5;
+  const g=c.createLinearGradient(-58,0,-58-L,0);
+  g.addColorStop(0,"#ffffff"); g.addColorStop(0.25,"#8fdcff"); g.addColorStop(0.65,T.nitrous||"#8a5cff"); g.addColorStop(1,"rgba(138,92,255,0)");
+  c.fillStyle=g; c.beginPath(); c.moveTo(-57,6-w); c.quadraticCurveTo(-58-L*0.55,6-w*0.6,-58-L,6); c.quadraticCurveTo(-58-L*0.55,6+w*0.6,-57,6+w); c.closePath(); c.fill();
 }
 
 // ---- mascot ----
@@ -720,7 +787,7 @@ function drawFace(dt){
   if (!S.engineOn && S.cranking<=0) mood="sleep";
   if (S.syncing) mood="focus";
   if (S.temp>200) mood="sweat";
-  if (Math.abs(S.v*3.6)>90) mood="wow";
+  if (Math.abs(S.v*3.6)>90 || S.nos.on) mood="wow";
   if (faceMoodHold) mood=faceMoodHold;
   if (S.time-S.overrevT<2.5) mood="dizzy";
   if (S.grinding>0.05) mood="ouch";
@@ -774,6 +841,7 @@ function panelUI(){
   el("vTemp").textContent=Math.round(S.temp)+" °C"; el("chipTemp").classList.toggle("warn",S.temp>200);
   el("vHealth").textContent=Math.round(S.health)+" %"; el("healthBar").style.width=S.health+"%";
   el("healthBar").style.background = S.health>60?"var(--ok)":S.health>30?"var(--free)":"var(--danger)";
+  if (nosBtn){ nosFill.style.width=(S.nos.lvl*100)+"%"; nosBtn.classList.toggle("on",S.nos.on); nosBtn.setAttribute("aria-pressed",String(S.nos.on)); }
   const on=S.engineOn||S.cranking>0;
   startTxt.textContent = on ? "Stop engine" : "Start engine";
   startBtn.classList.toggle("off", on); engDot.classList.toggle("on", S.engineOn);

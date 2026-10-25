@@ -69,6 +69,7 @@
         <kbd>E</kbd><span>start / stop the engine</span>
         <kbd>Space</kbd><span>hold to press the clutch (it comes up smoothly when you let go)</span>
         <kbd>W / ↑</kbd><span>throttle · <kbd>S / ↓</kbd> brake</span>
+        <kbd>Shift</kbd><span>hold for nitrous (with the throttle down)</span>
         <kbd>1–5 · R · N</kbd><span>move the lever (or drag the knob)</span>
         <kbd>M</kbd><span>sound on / off</span>
       </div>
@@ -91,6 +92,7 @@
       <svg id="gate" viewBox="0 0 200 240" tabindex="0" role="application" aria-label="H-pattern gear lever. Drag the knob, or use keys 1 to 5, R and N."></svg>
       <div class="gearbig">Gear<strong id="gearTxt">N</strong></div>
       <div class="revhint" id="revHint"></div>
+      <button id="nosBtn" class="nos" type="button" aria-pressed="false" aria-label="Nitrous: hold for a boost (or hold Shift)"><span class="nosTxt">NOS</span><span class="nosBar"><i id="nosFill"></i></span><kbd>Shift</kbd></button>
     </div>
     <div class="tips">
       <div class="tip"><strong>Mouse only?</strong> Pedals act like sliders: drag the clutch down, move the lever, then drag the clutch back up slowly. Keyboard keys work at the same time.</div>

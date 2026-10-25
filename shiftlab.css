@@ -3,7 +3,7 @@
 :root{
   --bg:#e9eef6; --surface:#ffffff; --surface-2:#f4f7fb; --ink:#1f2a3c; --muted:#66758c; --line:#d5deea;
   --input:#5b8def; --output:#2fb894; --free:#f2bf47; --brass:#d68d32; --accent:#ff7445; --reverse:#a184ee;
-  --danger:#e4486a; --ok:#2fb894; --sky:#cfe3fb; --hill:#bfe3cf; --road:#5d6b80; --casing:#f6f2ff; --steel:#a8b3c4;
+  --danger:#e4486a; --ok:#2fb894; --sky:#cfe3fb; --hill:#bfe3cf; --road:#5d6b80; --casing:#f6f2ff; --steel:#a8b3c4; --nitrous:#7a4dff;
   --font-display:"Fredoka","Nunito","Trebuchet MS",system-ui,sans-serif;
   --font-body:"Nunito","Segoe UI",system-ui,sans-serif;
   --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
@@ -12,11 +12,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121725; --surface:#1b2233; --surface-2:#222b3f; --ink:#e8edf6; --muted:#9aa7bd; --line:#2e3950;
   --input:#7aa5ff; --output:#46d1aa; --free:#f5cb62; --brass:#e9a24c; --accent:#ff8a5c; --reverse:#b7a0ff;
-  --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; color-scheme:dark}}
+  --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; --nitrous:#a68bff; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#121725; --surface:#1b2233; --surface-2:#222b3f; --ink:#e8edf6; --muted:#9aa7bd; --line:#2e3950;
   --input:#7aa5ff; --output:#46d1aa; --free:#f5cb62; --brass:#e9a24c; --accent:#ff8a5c; --reverse:#b7a0ff;
-  --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; color-scheme:dark}
+  --danger:#ff6b8a; --ok:#46d1aa; --sky:#24324d; --hill:#26473f; --road:#3c475b; --casing:#232b40; --steel:#6f7c92; --nitrous:#a68bff; color-scheme:dark}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45}
 .app{max-width:1320px;margin:0 auto;padding-inline:16px;padding-block:14px 28px;display:grid;gap:14px}
@@ -104,3 +104,13 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
 .gearspin{transform-box:view-box;transform-origin:22px 22px;animation:gearspin 9s linear infinite}
 @keyframes gearspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.gearspin{animation:none}}
+
+/* nitrous button (hold, or Shift) */
+.nos{width:190px;justify-content:space-between;gap:9px;margin-top:4px;touch-action:none;user-select:none;-webkit-user-select:none}
+.nos .nosTxt{color:var(--nitrous);font-weight:700;letter-spacing:.06em}
+.nos .nosBar{flex:1;height:8px;border-radius:9px;background:var(--line);overflow:hidden}
+.nos .nosBar i{display:block;height:100%;width:100%;background:var(--nitrous);border-radius:9px}
+.nos kbd{font-family:var(--font-mono);font-size:.72rem;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 5px;color:var(--muted)}
+.nos.on{background:var(--nitrous);border-color:var(--nitrous);color:#fff}
+.nos.on .nosTxt,.nos.on kbd{color:#fff;border-color:rgba(255,255,255,.6)}
+.nos.on .nosBar{background:rgba(255,255,255,.35)} .nos.on .nosBar i{background:#fff}
