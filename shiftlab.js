@@ -21,7 +21,7 @@ const REV = CAR.rev;                // {plane, dir}: dir +1 = reverse is "back",
 const PKEYS = Object.keys(PLANES).map(Number).sort((a,b)=>a-b);
 const PMIN = PKEYS[0], PMAX = PKEYS[PKEYS.length-1];
 const fmt = n => Math.round(n).toLocaleString("en");
-const wear = () => 1-S.health/100;   // 0 = new gearbox, 1 = wrecked: the car gets sillier as it wears
+const wear = () => 1-S.health/100;   // 0 = new gearbox, 1 = wrecked
 
 // ================= state =================
 let S;
@@ -46,7 +46,12 @@ function engaged(){
   if (S.riSt==="engaged") return {gear:"R", unit:"R"};
   return null;
 }
-function clutchCap(){ return CLUTCH_CAP*(1-ss((S.clutch.v-0.2)/0.55)); }
+// a worn clutch holds less torque (slips under power), judders as it bites, and drags when the pedal is fully down
+function clutchCap(){
+  const w=wear(), base=CLUTCH_CAP*(1-0.6*w)*(1-ss((S.clutch.v-0.2)/0.55));
+  const judder = (w>0.3 && S.clutch.v>0.15 && S.clutch.v<0.7) ? 1+0.35*(w-0.3)*Math.sin(S.time*42) : 1;
+  return Math.max(base*judder, w>0.3 ? (w-0.3)*20 : 0);
+}
 
 // ================= coach / messages =================
 const msgTitle=document.getElementById("msgTitle"), msgText=document.getElementById("msgText"), logEl=document.getElementById("log");
@@ -179,7 +184,6 @@ function selectGear(g){
 function leverUI(){
   const ay=actualY(); let jx=0,jy=0;
   if (S.grinding>0.05 && !reduceMotion){ jx=(Math.random()-0.5)*4; jy=(Math.random()-0.5)*4; }
-  else if (wear()>0.3 && !reduceMotion){ jx=Math.sin(S.time*9)*wear()*2.5; } // sloppy linkage
   const cx=GX(S.lever.x)+jx, cy=GY(ay)+jy;
   for (const g of gates){ g.knob.setAttribute("cx",cx); g.knob.setAttribute("cy",cy); g.knobHi.setAttribute("cx",cx-6); g.knobHi.setAttribute("cy",cy-6);
     g.stick.setAttribute("x2",cx); g.stick.setAttribute("y2",cy); }
@@ -231,6 +235,8 @@ document.getElementById("resetBtn").addEventListener("click",()=>{ const snd=S.s
 function fres(v){ return CRR*MASS*G*clamp(v/0.3,-1,1) + 0.5*RHO*CDA*v*Math.abs(v); }
 function fbrake(v){ return S.brk.v*BMAX*clamp(v/0.3,-1,1); }
 function dragI(w){ return 0.6*clamp(w/2,-1,1)+0.004*w; }
+// worn gears and bearings: in gear they waste up to 30 % of the torque going through them; in neutral just a little drag
+function wearLoss(w, inGear){ return wear()*(inGear ? 0.3*Math.abs(S.Tc) : 2)*clamp(w/2,-1,1); }
 
 function stepUnits(dt){
   const L=S.lever, pl=Math.round(L.x), onPlane=Math.abs(L.x-pl)<0.15;
@@ -267,7 +273,7 @@ function stepUnits(dt){
       if (Math.abs(u.s)>=0.9){
         if (Math.abs(diff)<4){
           u.s=d; u.st="engaged";
-          if (clutchCap()>12) say("clutchless","Clean clutchless shift into "+g+ordS(g)+"!","Engine speed already matched the gear, so the synchro had nothing to do. Nice rev-matching.","good",4);
+          if (S.engineOn && S.clutch.v<0.3 && clutchCap()>12) say("clutchless","Clean clutchless shift into "+g+ordS(g)+"!","Engine speed already matched the gear, so the synchro had nothing to do. Nice rev-matching.","good",4);
           else if (u.bt>0) say("synced",g+ordS(g)+" engaged",`The synchro matched speeds in ${Math.max(10,Math.round(u.bt*1000))} ms, then the sleeve slid onto the dog teeth.`,"good",1.5);
           else say("synced",g+ordS(g)+" engaged","Nothing was turning, so the sleeve slid straight onto the dog teeth.","good",1.5);
           S.wi = wo*RATIO[g]; u.bt=0;
@@ -328,9 +334,9 @@ function physics(dt){
     rg=RATIO[eg.gear];
     const k=FD*rg;
     Jd = JI + MASS*RW*RW/(k*k);
-    Tload = -(fres(S.v)+fbrake(S.v))*RW/k;
+    Tload = -(fres(S.v)+fbrake(S.v))*RW/k - wearLoss(S.wi,true);
   } else {
-    Jd=JI; Tload=-dragI(S.wi);
+    Jd=JI; Tload=-dragI(S.wi)-wearLoss(S.wi,false);
     if (S.syncing){
       const wo=S.v/RW*FD, tgt=wo*RATIO[S.syncing.gear];
       const locked = cap>1 && Math.abs(S.we-S.wi)<1;
@@ -375,7 +381,8 @@ function physics(dt){
   if (S.syncing && !eg){
     S.syncT+=dt;
     const u=S.units[S.syncing.unit];
-    if (u.st==="blocked" && u.bt>0.15 && cap>12){ grind=true; S.grindWhy="noclutch"; }
+    if (u.st==="blocked" && u.bt>0.15 && cap>12 && S.clutch.v<0.75){ grind=true; S.grindWhy="noclutch"; }
+    else if (u.st==="blocked" && u.bt>0.5 && cap>2 && wear()>0.3){ grind=true; S.grindWhy="drag"; }   // dragging clutch beats the weak synchro
   }
   if (S.riSt==="blocked") grind=true;
   if (grind){ S.grinding=Math.min(2,S.grinding+dt); S.health=Math.max(0,S.health-dt*(S.riSt==="blocked"?5:3.5)); }
@@ -390,7 +397,8 @@ function monitors(dt){
     if (S.grindWhy==="noclutch" && S.syncing){
       const g=S.syncing?S.syncing.gear:"";
       say("grind","KRRRRK! Grinding into "+g+ordS(g),"The clutch isn't pressed, so the synchro would have to slow down the whole engine and flywheel too. It can't, the blocker ring stays in the way and the sleeve chamfers grind on it. Press the clutch fully, then shift.","bad",2.5);
-    } else if (S.grindWhy==="rolling") say("grindR","CRUNCH! Reverse while rolling","Reverse has no synchroniser. With the car still moving, the idler's straight teeth smash against the spinning teeth on the 1/2 sleeve. Stop completely first.","bad",2.5);
+    } else if (S.grindWhy==="drag" && S.syncing) say("grindD","Grinding with the clutch down","The worn clutch doesn't fully release, so the engine keeps dragging the input shaft and the glazed synchro can't slow it. Lift off the throttle and wait, or double-declutch.","bad",3);
+    else if (S.grindWhy==="rolling") say("grindR","CRUNCH! Reverse while rolling","Reverse has no synchroniser. With the car still moving, the idler's straight teeth smash against the spinning teeth on the 1/2 sleeve. Stop completely first.","bad",2.5);
     else if (S.grindWhy==="revclutch") say("grindR2","CRUNCH! Reverse with the clutch up","The input shaft is spinning with the engine, and reverse has no synchro to stop it. Press the clutch, wait a second, then select R.","bad",2.5);
     else if (S.grindWhy==="revspin") say("grindR3","Crunch… wait a moment","The clutch is pressed, but the input shaft is still spinning down. Give it a second, or briefly touch a forward gear to stop it, then select R.","bad",2.5);
   }
@@ -413,10 +421,12 @@ function monitors(dt){
   const stage = S.health<15?3 : S.health<40?2 : S.health<70?1 : 0;
   if (stage>S.wearStage){
     S.wearStage=stage;
-    if (stage===1) say("wear1","The car looks a bit dopey…","Gearbox health is under 70 %. The synchro cones are glazing, so shifts take longer and grind more easily. Be gentle!","bad",0);
-    else if (stage===2) say("wear2","Uh-oh, the car's gone silly","Under 40 %: the dog teeth are rounded off, so gears can jump out when you lift off the throttle. Listen for the whine.","bad",0);
-    else say("wear3","Duuuh… the car has lost it","Under 15 %: this gearbox is scrap. Press Reset for a fresh one.","bad",0);
+    if (stage===1) say("wear1","Drivetrain wearing out","Health under 70 %: the synchro cones are glazing and the clutch lining is thinning. Shifts are slower, the clutch holds less torque, and friction is eating power.","bad",0);
+    else if (stage===2) say("wear2","Gearbox badly worn","Under 40 %: the clutch drags with the pedal down so gears grind, it judders as it bites and slips under power, rounded dog teeth let gears jump out, and the exhaust smokes black.","bad",0);
+    else say("wear3","Gearbox almost finished","Under 15 %: heavy power loss and a slipping clutch. Press Reset for a fresh gearbox.","bad",0);
   }
+  if (eg && wear()>0.3 && S.clutch.v<0.1 && S.thr.v>0.5 && Math.abs(S.we-S.wi)>RAD(250))
+    say("slipW","Worn clutch slipping","The pedal is up but the revs flare past the road speed: the thin lining can't hold the engine's torque any more.","bad",6);
   S.popT+=dt;
   if (eg && eg.gear!=="R" && S.health<40 && S.engineOn && S.thr.v<0.15 && Math.abs(S.v)>3 && S.popT>2 && Math.random()<dt*(0.4-S.health/100)*1.5){
     const u=S.units[eg.unit]; u.st="free"; u.s=Math.sign(u.s)*0.3; selectGear("N"); S.popT=0; S.shake=0.3; clunk();
@@ -732,32 +742,12 @@ function drawCarBody(c){
   c.lineWidth=1.4; c.fillStyle="#fff7c2"; c.strokeStyle=edge; const lp=P(B.lamp); c.fill(lp); c.stroke(lp);
   const rev = S.riSt==="engaged"; c.fillStyle = S.brk.v>0.05 ? "#ff3b3b" : rev ? "#ffffff" : "#c0392b";
   rr(c,-60,-9,6,8,2); c.fill();
-  // little face on the bonnet: it gets dumber as the gearbox wears
-  if (S.health<70) return;   // derpFace() is drawn after the wheels instead
+  // little face on the bonnet
   c.fillStyle=CAR.faceInk; c.beginPath(); c.arc(36,-2,2.2,0,7); c.arc(46,-2,2.2,0,7); c.fill();
   c.strokeStyle=CAR.faceInk; c.lineWidth=1.6; c.beginPath();
   if (S.grinding>0.05||S.time-S.stallT<1.5) { c.moveTo(37,6); c.lineTo(45,6); } else c.arc(41,3,4,0.15*Math.PI,0.85*Math.PI);
   c.stroke();
 }
-function derpFace(c){
-  const wr=wear(), t=S.time, ink=CAR.faceInk, pup="#1f2a3c", wob=reduceMotion?0:Math.sin(t*6)*0.8*wr;
-  const eyes=[[34,-3,3.4+wr*2.2,1],[47,-5,2.4+wr*0.8,-1]];        // odd-sized googly eyes, pupils crossed
-  for (const [x,y,r,dir] of eyes){
-    c.fillStyle="#fff"; c.strokeStyle="#1f2a3c"; c.lineWidth=0.9; c.beginPath(); c.arc(x,y,r,0,7); c.fill(); c.stroke();
-    c.strokeStyle=pup; c.fillStyle=pup;
-    if (S.health<15){ c.lineWidth=1.3; c.beginPath(); c.moveTo(x-r*0.55,y-r*0.55); c.lineTo(x+r*0.55,y+r*0.55); c.moveTo(x+r*0.55,y-r*0.55); c.lineTo(x-r*0.55,y+r*0.55); c.stroke(); }
-    else { c.beginPath(); c.arc(x+dir*r*0.4+wob,y+r*0.3-wob*dir,r*0.45,0,7); c.fill(); }
-  }
-  // goofy open grin, tongue flopping out once it's really worn
-  c.strokeStyle=ink; c.lineWidth=1.8; c.beginPath(); c.moveTo(31,4); c.quadraticCurveTo(39,11+wob,49,3); c.stroke();
-  if (S.health<40){ c.fillStyle="#ff6f91"; c.strokeStyle="#c2185b"; c.lineWidth=0.7; c.beginPath(); c.ellipse(43+wob*0.5,10+wr*2.5,2.8,2.4+wr*3,0.2,0,7); c.fill(); c.stroke(); }
-  if (S.health<15){ // dazed: stars circling the roof
-    c.fillStyle="#ffd23f"; c.strokeStyle="#c98a00"; c.lineWidth=0.6;
-    for (let i=0;i<3;i++){ const a=(reduceMotion?0:t*3)+i*2.1, x=Math.cos(a)*16-6, y=-44+Math.sin(a)*4;
-      c.beginPath(); for (let k=0;k<10;k++){ const rr2=k%2?1.6:3.8, b=k*Math.PI/5-Math.PI/2; c.lineTo(x+Math.cos(b)*rr2,y+Math.sin(b)*rr2); } c.closePath(); c.fill(); c.stroke(); }
-  }
-}
-
 // ---- road ----
 function drawRoad(){
   const cv=document.getElementById("road"), {w,h,dpr}=fitCanvas(cv), c=cv.getContext("2d");
@@ -786,22 +776,22 @@ function drawRoad(){
   let bob = S.engineOn ? Math.sin(S.time*RPM(S.we)/60*0.5)*0.6 : 0;
   let jx=0, jy=0;
   if (!reduceMotion && (S.grinding>0.05 || S.shake>0)){ jx=(Math.random()-0.5)*3; jy=(Math.random()-0.5)*3; }
-  const wr=wear(), silly = (wr>0.3 && !reduceMotion) ? Math.sin(S.time*(3+wr*5))*0.06*wr : 0;   // worn = wobbly
-  const pitch = clamp(-(S.lastAcc||0)*0.012,-0.06,0.06) + silly;
-  c.save(); c.translate(carX+jx,carY+bob+jy+wr*1.5); c.rotate(pitch);
+  const pitch = clamp(-(S.lastAcc||0)*0.012,-0.06,0.06);
+  c.save(); c.translate(carX+jx,carY+bob+jy); c.rotate(pitch);
   // exhaust puffs
-  if (S.engineOn && Math.random()<0.15+S.thr.v*0.6) S.puffs.push({x:-58,y:6,r:3,a:0.5});
-  if (S.health<40 && (S.engineOn||Math.abs(S.v)>1) && Math.random()<wr*0.5) S.puffs.push({x:6+Math.random()*10,y:8,r:2.5,a:0.45,dark:true}); // smoke from the gearbox
+  // exhaust: grey when healthy, thicker and black as the drivetrain wears and the engine labours
+  const wr=wear();
+  if (S.engineOn && Math.random()<0.15+S.thr.v*0.6+wr*0.5) S.puffs.push({x:-58,y:6,r:3+wr*2,a:0.5+wr*0.3});
   for (const p of S.puffs){ p.x-=0.6+S.v*0.3; p.y-=0.25; p.r+=0.25; p.a-=0.012; }
   S.puffs=S.puffs.filter(p=>p.a>0).slice(-60);
-  for (const p of S.puffs){ c.fillStyle=p.dark?`rgba(70,74,84,${p.a})`:`rgba(160,170,190,${p.a})`; c.beginPath(); c.arc(p.x,p.y,p.r,0,7); c.fill(); }
+  const sm=[160,170,190].map(x=>Math.round(x+(22-x)*clamp(wr*1.4,0,1)));
+  for (const p of S.puffs){ c.fillStyle=`rgba(${sm},${p.a})`; c.beginPath(); c.arc(p.x,p.y,p.r,0,7); c.fill(); }
   if (S.nos.on) nosFlame(c);
   drawCarBody(c);
   // wheels
   const wa=S.dist/RW;
   for (const wx of [-34,34]){ c.fillStyle="#2a2f3a"; c.beginPath(); c.arc(wx,12,12,0,7); c.fill(); c.fillStyle=T.steel; c.beginPath(); c.arc(wx,12,6,0,7); c.fill();
     c.strokeStyle="#2a2f3a"; c.lineWidth=2; c.beginPath(); c.moveTo(wx,12); c.lineTo(wx+Math.cos(wa)*6,12+Math.sin(wa)*6); c.stroke(); }
-  if (S.health<70) derpFace(c);   // on top of the front wheel so the tongue can flop over it
   c.restore();
   if (S.nos.on && !reduceMotion){ // speed streaks behind the car
     c.strokeStyle="rgba(255,255,255,.7)"; c.lineWidth=2;
