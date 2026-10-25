@@ -27,7 +27,7 @@ You work the clutch, throttle, brake and an H-pattern gear lever. A live cutaway
 | `1`–`5`, `R`, `N` | move the gear lever (or drag the knob) |
 | `M` | sound on / off |
 
-With a mouse or touch screen only, the pedals work as sliders.
+With a mouse or touch screen only, the pedals work as sliders. A strip at the top of each page has mini pedals, a mini gear lever and the nitrous bar, so you can drive without scrolling; the full-size controls stay at the bottom.
 
 ## What it simulates
 
@@ -43,6 +43,7 @@ With a mouse or touch screen only, the pedals work as sliders.
   - lugging and clutch overheating;
   - the Saxo's 5th → reverse lockout.
 - **Nitrous (game add-on):** hold `Shift` with the throttle pressed, above 1,200 rpm, for extra torque. The bottle drains in 7–8 s and refills when you let go.
+- **Worn gearbox:** as gearbox health drops, the car gets dumber. Below 70 % it goes googly-eyed and the synchros grip less, so shifts are slower and grind more easily. Below 40 % its tongue hangs out, it wobbles and smokes, worn gears whine, and gears can pop out to neutral when you lift off the throttle. Below 15 % its eyes are crossed out and stars circle the roof. Reset gives you a fresh gearbox.
 - **Engine sound:** each car has its own voice, set in `cars.js`: the Saxo is buzzy and raspy with overrun pops, the Polo low and thrummy, the Corsa 16v revvy and bright, the GX3 smooth and muted.
 
 ## Run locally

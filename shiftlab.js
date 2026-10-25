@@ -21,6 +21,7 @@ const REV = CAR.rev;                // {plane, dir}: dir +1 = reverse is "back",
 const PKEYS = Object.keys(PLANES).map(Number).sort((a,b)=>a-b);
 const PMIN = PKEYS[0], PMAX = PKEYS[PKEYS.length-1];
 const fmt = n => Math.round(n).toLocaleString("en");
+const wear = () => 1-S.health/100;   // 0 = new gearbox, 1 = wrecked: the car gets sillier as it wears
 
 // ================= state =================
 let S;
@@ -33,6 +34,7 @@ function fresh(){
     lever:{x:0, y:0, drag:false, kb:null, kbT:0, lockR:false},
     Tc:0, temp:40, health:100, grinding:0, grindWhy:"", syncing:null, syncT:0, overrevT:-9, limT:0, lugT:0,
     nos:{key:false, ptr:false, lvl:1, on:false},
+    wearStage:0, popT:0,
     engagedSince:0, lastGear:"N", time:0, shake:0, puffs:[], sparks:[], stallT:-9,
   };
 }
@@ -64,29 +66,27 @@ function say(key, title, text, mood="info", cool=3){
 }
 
 // ================= controls =================
-function pedalSetup(id, obj){
-  const el=document.getElementById(id), track=el.querySelector(".track");
+// every pedal can appear twice (full size at the bottom, mini in the top strip); both drive the same S[k]
+function pedalSetup(el, k){
+  const track=el.querySelector(".track"), pad=el.querySelector(".pad");
   let dragging=false;
-  const set=(e)=>{ const r=track.getBoundingClientRect(); obj.v=clamp((e.clientY-r.top-20)/(r.height-40),0,1); obj.manual=true; obj.key=false; };
+  const set=(e)=>{ const r=track.getBoundingClientRect(), ph=pad.offsetHeight, o=S[k];
+    o.v=clamp((e.clientY-r.top-4-ph/2)/(r.height-ph-12),0,1); o.manual=true; o.key=false; };
   el.addEventListener("pointerdown",e=>{dragging=true;el.setPointerCapture(e.pointerId);set(e);e.preventDefault();});
   el.addEventListener("pointermove",e=>{ if(dragging) set(e); });
   el.addEventListener("pointerup",()=>dragging=false);
   el.addEventListener("pointercancel",()=>dragging=false);
-  el.addEventListener("keydown",e=>{ if(e.key==="ArrowUp"&&e.altKey){} });
   return el;
 }
-const pedalEls={clutch:pedalSetup("clutchPedal",S.clutch), brk:pedalSetup("brakePedal",S.brk), thr:pedalSetup("throttlePedal",S.thr)};
-function rebindPedals(){ // after reset, objects are new
-  for (const [k,id] of [["clutch","clutchPedal"],["brk","brakePedal"],["thr","throttlePedal"]]){
-    const el=document.getElementById(id), clone=el.cloneNode(true); el.replaceWith(clone); pedalEls[k]=pedalSetup(id,S[k]);
-  }
-}
+const pedalEls=[];
+for (const [k,ids] of [["clutch",["clutchPedal","clutchMini"]],["brk",["brakePedal","brakeMini"]],["thr",["throttlePedal","throttleMini"]]])
+  for (const id of ids){ const el=document.getElementById(id); if (el) pedalEls.push([k,pedalSetup(el,k)]); }
 function pedalUI(){
-  for (const k of ["clutch","brk","thr"]){
-    const el=pedalEls[k], v=S[k].v, track=el.querySelector(".track"), h=track.clientHeight;
-    el.querySelector(".pad").style.top=(4+v*(h-46))+"px";
+  for (const [k,el] of pedalEls){
+    const v=S[k].v, h=el.querySelector(".track").clientHeight, pad=el.querySelector(".pad"), val=el.querySelector(".val");
+    pad.style.top=(4+v*(h-pad.offsetHeight-12))+"px";
     el.querySelector(".fill").style.height=(v*100)+"%";
-    el.querySelector(".val").textContent=Math.round(v*100)+" %";
+    if (val) val.textContent=Math.round(v*100)+" %";
     el.setAttribute("aria-valuenow",Math.round(v*100));
   }
 }
@@ -96,11 +96,10 @@ function pedalKeys(dt){
   for (const p of [S.thr,S.brk]){ if(p.key) p.v=Math.min(1,p.v+2.4*dt); else if(!p.manual) p.v=Math.max(0,p.v-4*dt); }
 }
 
-// ---- lever / H-gate ----
-const gate=document.getElementById("gate");
+// ---- lever / H-gate (main one at the bottom, mini copy in the top strip) ----
 const GW = (PMAX-PMIN)>=3 ? 42 : 50, GC = 100-(PMIN+PMAX)/2*GW;
 const GX=x=>GC+x*GW, GY=y=>120+y*78;
-{
+function buildGate(svg, font, kr){
   const xs=PKEYS.map(GX), paths=[`M${xs[0]} 120 H${xs[xs.length-1]}`];
   let labels="";
   for (const p of PKEYS){
@@ -110,23 +109,24 @@ const GX=x=>GC+x*GW, GY=y=>120+y*78;
     if (P.down!=null) labels+=`<text x="${x}" y="226">${P.down}</text>`;
   }
   const d=paths.join(" ");
-  gate.innerHTML=`
+  svg.innerHTML=`
   <rect x="4" y="4" width="192" height="232" rx="22" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/>
   <g stroke="var(--line)" stroke-width="16" stroke-linecap="round" fill="none"><path d="${d}"/></g>
   <g stroke="var(--surface)" stroke-width="8" stroke-linecap="round" fill="none" opacity=".9"><path d="${d}"/></g>
-  <g font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="17" fill="var(--muted)" text-anchor="middle">${labels}</g>
-  <line id="stick" x1="${GX(0)}" y1="120" x2="${GX(0)}" y2="120" stroke="var(--muted)" stroke-width="5" stroke-linecap="round" opacity=".5"/>
-  <circle id="knob" cx="${GX(0)}" cy="120" r="17" fill="var(--accent)" stroke="var(--surface)" stroke-width="3"/>
-  <circle id="knobHi" cx="${GX(0)-6}" cy="114" r="5" fill="#fff" opacity=".55"/>`;
+  <g font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="${font}" fill="var(--muted)" text-anchor="middle">${labels}</g>
+  <line class="stick" x1="${GX(0)}" y1="120" x2="${GX(0)}" y2="120" stroke="var(--muted)" stroke-width="5" stroke-linecap="round" opacity=".5"/>
+  <circle class="knob" cx="${GX(0)}" cy="120" r="${kr}" fill="var(--accent)" stroke="var(--surface)" stroke-width="3"/>
+  <circle class="knobHi" cx="${GX(0)-6}" cy="114" r="${kr*0.3}" fill="#fff" opacity=".55"/>`;
+  const gatePoint=e=>{ const r=svg.getBoundingClientRect(); return {x:((e.clientX-r.left)/r.width*200-GC)/GW, y:((e.clientY-r.top)/r.height*240-120)/78}; };
+  svg.addEventListener("pointerdown",e=>{ svg.setPointerCapture(e.pointerId); S.lever.drag=true; S.lever.kb=null; leverPtr=gatePoint(e); e.preventDefault(); });
+  svg.addEventListener("pointermove",e=>{ if(S.lever.drag) leverPtr=gatePoint(e); });
+  svg.addEventListener("pointerup",leverUp); svg.addEventListener("pointercancel",leverUp);
+  return {knob:svg.querySelector(".knob"), knobHi:svg.querySelector(".knobHi"), stick:svg.querySelector(".stick")};
 }
-const knob=gate.querySelector("#knob"), knobHi=gate.querySelector("#knobHi"), stick=gate.querySelector("#stick");
-function gatePoint(e){ const r=gate.getBoundingClientRect(); return {x:((e.clientX-r.left)/r.width*200-GC)/GW, y:((e.clientY-r.top)/r.height*240-120)/78}; }
 let leverPtr=null;
-gate.addEventListener("pointerdown",e=>{ gate.setPointerCapture(e.pointerId); S.lever.drag=true; S.lever.kb=null; leverPtr=gatePoint(e); e.preventDefault(); });
-gate.addEventListener("pointermove",e=>{ if(S.lever.drag) leverPtr=gatePoint(e); });
 const leverUp=()=>{ if(!S.lever.drag) return; S.lever.drag=false; leverPtr=null;
   const eg=engaged(); if (eg){ S.lever.y = Math.sign(actualY()); } else { S.lever.y=0; S.lever.kb={x:0,y:0,rest:true}; } };
-gate.addEventListener("pointerup",leverUp); gate.addEventListener("pointercancel",leverUp);
+const gates=[[ "gate",17,17],["gateMini",30,24]].map(([id,f,kr])=>document.getElementById(id)&&buildGate(document.getElementById(id),f,kr)).filter(Boolean);
 
 function actualY(){ // the lever's real position follows the sleeve / idler of the plane it sits in
   const pl=Math.round(S.lever.x);
@@ -179,9 +179,10 @@ function selectGear(g){
 function leverUI(){
   const ay=actualY(); let jx=0,jy=0;
   if (S.grinding>0.05 && !reduceMotion){ jx=(Math.random()-0.5)*4; jy=(Math.random()-0.5)*4; }
+  else if (wear()>0.3 && !reduceMotion){ jx=Math.sin(S.time*9)*wear()*2.5; } // sloppy linkage
   const cx=GX(S.lever.x)+jx, cy=GY(ay)+jy;
-  knob.setAttribute("cx",cx); knob.setAttribute("cy",cy); knobHi.setAttribute("cx",cx-6); knobHi.setAttribute("cy",cy-6);
-  stick.setAttribute("x2",cx); stick.setAttribute("y2",cy);
+  for (const g of gates){ g.knob.setAttribute("cx",cx); g.knob.setAttribute("cy",cy); g.knobHi.setAttribute("cx",cx-6); g.knobHi.setAttribute("cy",cy-6);
+    g.stick.setAttribute("x2",cx); g.stick.setAttribute("y2",cy); }
 }
 
 // ---- keyboard ----
@@ -224,7 +225,7 @@ function toggleEngine(){
   S.cranking=0.75; say("crank","Cranking…","Starter motor spinning the engine up.","info",0.5);
 }
 startBtn.addEventListener("click",toggleEngine);
-document.getElementById("resetBtn").addEventListener("click",()=>{ const snd=S.sound; S=fresh(); S.sound=snd; rebindPedals(); logEl.innerHTML=""; say("reset","Fresh gearbox","Everything reset. Start the engine to drive again.","good",0); });
+document.getElementById("resetBtn").addEventListener("click",()=>{ const snd=S.sound; S=fresh(); S.sound=snd; logEl.innerHTML=""; say("reset","Fresh gearbox","Everything reset. Start the engine to drive again.","good",0); });
 
 // ================= physics =================
 function fres(v){ return CRR*MASS*G*clamp(v/0.3,-1,1) + 0.5*RHO*CDA*v*Math.abs(v); }
@@ -334,7 +335,7 @@ function physics(dt){
       const wo=S.v/RW*FD, tgt=wo*RATIO[S.syncing.gear];
       const locked = cap>1 && Math.abs(S.we-S.wi)<1;
       const Jeff = JI + (locked?JE:0);
-      Tsync = clamp(Jeff*(tgt-S.wi)/dt, -SYNC_CAP, SYNC_CAP);
+      const cap2=SYNC_CAP*(1-0.6*wear()); Tsync = clamp(Jeff*(tgt-S.wi)/dt, -cap2, cap2);   // worn cones grip less
       Tload += Tsync;
     }
   }
@@ -408,6 +409,19 @@ function monitors(dt){
   }
   if (!S.engineOn && S.cranking<=0 && S.thr.v>0.5 && S.time-S.stallT>1.5) say("thrOff","Engine is off","Throttle does nothing without the engine running. Press Start (E).","info",6);
   if (eg && eg.gear===1 && kmh>3 && S.lastGear!=="1") {}
+  // worn gearbox: the car gets dumber in stages, and worn dog teeth let a gear jump out off the throttle
+  const stage = S.health<15?3 : S.health<40?2 : S.health<70?1 : 0;
+  if (stage>S.wearStage){
+    S.wearStage=stage;
+    if (stage===1) say("wear1","The car looks a bit dopey…","Gearbox health is under 70 %. The synchro cones are glazing, so shifts take longer and grind more easily. Be gentle!","bad",0);
+    else if (stage===2) say("wear2","Uh-oh, the car's gone silly","Under 40 %: the dog teeth are rounded off, so gears can jump out when you lift off the throttle. Listen for the whine.","bad",0);
+    else say("wear3","Duuuh… the car has lost it","Under 15 %: this gearbox is scrap. Press Reset for a fresh one.","bad",0);
+  }
+  S.popT+=dt;
+  if (eg && eg.gear!=="R" && S.health<40 && S.engineOn && S.thr.v<0.15 && Math.abs(S.v)>3 && S.popT>2 && Math.random()<dt*(0.4-S.health/100)*1.5){
+    const u=S.units[eg.unit]; u.st="free"; u.s=Math.sign(u.s)*0.3; selectGear("N"); S.popT=0; S.shake=0.3; clunk();
+    say("popout","Popped out of "+eg.gear+ordS(eg.gear)+"!","The worn dog teeth are rounded, so when you lifted off the throttle the sleeve walked back out to neutral. Healthy gearboxes have back-cut teeth that hold it in.","bad",3);
+  }
   const gname = eg ? String(eg.gear) : "N";
   if (gname!==S.lastGear){ S.lastGear=gname; }
   if (eg && eg.gear==="R" && S.v>0.5){}
@@ -448,8 +462,14 @@ function initAudio(){
     const hp=filt("highpass",3800,0.7), ng=noise(hp,gain(0));                         // nitrous hiss
     const pbp=filt("bandpass",800,0.9), pg=noise(pbp,gain(0));                        // overrun pops
     const st=osc("square"); st.frequency.value=SND.starter; const sg=gain(0); st.connect(sg); sg.connect(mix);
-    au={master,lp,eg,o1,o2,o3,lfo,ow,wg,rbp,rg,gg,bp,ng,pbp,pg,sg,st};
+    const gw=osc("triangle"), gwg=gain(0); gw.connect(gwg); gwg.connect(master);        // worn-gear whine
+    au={master,lp,eg,o1,o2,o3,lfo,ow,wg,rbp,rg,gg,bp,ng,pbp,pg,sg,st,gw,gwg};
   }catch(e){ AC=null; }
+}
+function clunk(){ // a short knock when a gear jumps out
+  if (!AC || !S.sound) return;
+  const t=AC.currentTime; au.pbp.frequency.setValueAtTime(260,t);
+  au.pg.gain.cancelScheduledValues(t); au.pg.gain.setValueAtTime(0.5,t); au.pg.gain.exponentialRampToValueAtTime(0.0005,t+0.12);
 }
 function toggleSound(){
   if (!AC) initAudio();
@@ -477,6 +497,8 @@ function audioTick(){
   const gr = S.grinding>0.05 ? 0.18+0.14*Math.random() : 0;
   au.gg.gain.setTargetAtTime(gr,t,0.015); au.bp.frequency.setTargetAtTime(1800+Math.random()*1800,t,0.01);
   au.ng.gain.setTargetAtTime(nos?0.11:0,t,0.04);
+  const ws=RPM(Math.abs(S.wi)), wr=wear();   // worn gears whine at tooth-mesh frequency
+  au.gw.frequency.setTargetAtTime(80+ws/60*12,t,0.03); au.gwg.gain.setTargetAtTime(wr>0.3 ? (wr-0.3)*0.12*clamp(ws/1500,0,1) : 0,t,0.08);
   // overrun pops: a short window after lifting off the throttle at high revs
   if (prevThr>0.3 && S.thr.v<0.1 && rpm>2800) popT=0;
   prevThr=S.thr.v; popT+=dt;
@@ -710,11 +732,30 @@ function drawCarBody(c){
   c.lineWidth=1.4; c.fillStyle="#fff7c2"; c.strokeStyle=edge; const lp=P(B.lamp); c.fill(lp); c.stroke(lp);
   const rev = S.riSt==="engaged"; c.fillStyle = S.brk.v>0.05 ? "#ff3b3b" : rev ? "#ffffff" : "#c0392b";
   rr(c,-60,-9,6,8,2); c.fill();
-  // little face on the bonnet
+  // little face on the bonnet: it gets dumber as the gearbox wears
+  if (S.health<70) return;   // derpFace() is drawn after the wheels instead
   c.fillStyle=CAR.faceInk; c.beginPath(); c.arc(36,-2,2.2,0,7); c.arc(46,-2,2.2,0,7); c.fill();
   c.strokeStyle=CAR.faceInk; c.lineWidth=1.6; c.beginPath();
   if (S.grinding>0.05||S.time-S.stallT<1.5) { c.moveTo(37,6); c.lineTo(45,6); } else c.arc(41,3,4,0.15*Math.PI,0.85*Math.PI);
   c.stroke();
+}
+function derpFace(c){
+  const wr=wear(), t=S.time, ink=CAR.faceInk, pup="#1f2a3c", wob=reduceMotion?0:Math.sin(t*6)*0.8*wr;
+  const eyes=[[34,-3,3.4+wr*2.2,1],[47,-5,2.4+wr*0.8,-1]];        // odd-sized googly eyes, pupils crossed
+  for (const [x,y,r,dir] of eyes){
+    c.fillStyle="#fff"; c.strokeStyle="#1f2a3c"; c.lineWidth=0.9; c.beginPath(); c.arc(x,y,r,0,7); c.fill(); c.stroke();
+    c.strokeStyle=pup; c.fillStyle=pup;
+    if (S.health<15){ c.lineWidth=1.3; c.beginPath(); c.moveTo(x-r*0.55,y-r*0.55); c.lineTo(x+r*0.55,y+r*0.55); c.moveTo(x+r*0.55,y-r*0.55); c.lineTo(x-r*0.55,y+r*0.55); c.stroke(); }
+    else { c.beginPath(); c.arc(x+dir*r*0.4+wob,y+r*0.3-wob*dir,r*0.45,0,7); c.fill(); }
+  }
+  // goofy open grin, tongue flopping out once it's really worn
+  c.strokeStyle=ink; c.lineWidth=1.8; c.beginPath(); c.moveTo(31,4); c.quadraticCurveTo(39,11+wob,49,3); c.stroke();
+  if (S.health<40){ c.fillStyle="#ff6f91"; c.strokeStyle="#c2185b"; c.lineWidth=0.7; c.beginPath(); c.ellipse(43+wob*0.5,10+wr*2.5,2.8,2.4+wr*3,0.2,0,7); c.fill(); c.stroke(); }
+  if (S.health<15){ // dazed: stars circling the roof
+    c.fillStyle="#ffd23f"; c.strokeStyle="#c98a00"; c.lineWidth=0.6;
+    for (let i=0;i<3;i++){ const a=(reduceMotion?0:t*3)+i*2.1, x=Math.cos(a)*16-6, y=-44+Math.sin(a)*4;
+      c.beginPath(); for (let k=0;k<10;k++){ const rr2=k%2?1.6:3.8, b=k*Math.PI/5-Math.PI/2; c.lineTo(x+Math.cos(b)*rr2,y+Math.sin(b)*rr2); } c.closePath(); c.fill(); c.stroke(); }
+  }
 }
 
 // ---- road ----
@@ -745,19 +786,22 @@ function drawRoad(){
   let bob = S.engineOn ? Math.sin(S.time*RPM(S.we)/60*0.5)*0.6 : 0;
   let jx=0, jy=0;
   if (!reduceMotion && (S.grinding>0.05 || S.shake>0)){ jx=(Math.random()-0.5)*3; jy=(Math.random()-0.5)*3; }
-  const pitch = clamp(-(S.lastAcc||0)*0.012,-0.06,0.06);
-  c.save(); c.translate(carX+jx,carY+bob+jy); c.rotate(pitch);
+  const wr=wear(), silly = (wr>0.3 && !reduceMotion) ? Math.sin(S.time*(3+wr*5))*0.06*wr : 0;   // worn = wobbly
+  const pitch = clamp(-(S.lastAcc||0)*0.012,-0.06,0.06) + silly;
+  c.save(); c.translate(carX+jx,carY+bob+jy+wr*1.5); c.rotate(pitch);
   // exhaust puffs
   if (S.engineOn && Math.random()<0.15+S.thr.v*0.6) S.puffs.push({x:-58,y:6,r:3,a:0.5});
+  if (S.health<40 && (S.engineOn||Math.abs(S.v)>1) && Math.random()<wr*0.5) S.puffs.push({x:6+Math.random()*10,y:8,r:2.5,a:0.45,dark:true}); // smoke from the gearbox
   for (const p of S.puffs){ p.x-=0.6+S.v*0.3; p.y-=0.25; p.r+=0.25; p.a-=0.012; }
-  S.puffs=S.puffs.filter(p=>p.a>0).slice(-40);
-  for (const p of S.puffs){ c.fillStyle=`rgba(160,170,190,${p.a})`; c.beginPath(); c.arc(p.x,p.y,p.r,0,7); c.fill(); }
+  S.puffs=S.puffs.filter(p=>p.a>0).slice(-60);
+  for (const p of S.puffs){ c.fillStyle=p.dark?`rgba(70,74,84,${p.a})`:`rgba(160,170,190,${p.a})`; c.beginPath(); c.arc(p.x,p.y,p.r,0,7); c.fill(); }
   if (S.nos.on) nosFlame(c);
   drawCarBody(c);
   // wheels
   const wa=S.dist/RW;
   for (const wx of [-34,34]){ c.fillStyle="#2a2f3a"; c.beginPath(); c.arc(wx,12,12,0,7); c.fill(); c.fillStyle=T.steel; c.beginPath(); c.arc(wx,12,6,0,7); c.fill();
     c.strokeStyle="#2a2f3a"; c.lineWidth=2; c.beginPath(); c.moveTo(wx,12); c.lineTo(wx+Math.cos(wa)*6,12+Math.sin(wa)*6); c.stroke(); }
+  if (S.health<70) derpFace(c);   // on top of the front wheel so the tongue can flop over it
   c.restore();
   if (S.nos.on && !reduceMotion){ // speed streaks behind the car
     c.strokeStyle="rgba(255,255,255,.7)"; c.lineWidth=2;
@@ -829,6 +873,7 @@ const el=id=>document.getElementById(id);
 function panelUI(){
   const eg=engaged(), cap=clutchCap(), slip=Math.abs(S.we-S.wi);
   el("gearTxt").textContent = eg ? String(eg.gear) : "N";
+  if (el("gearMini")) el("gearMini").textContent = eg ? String(eg.gear) : "N";
   let cs = S.clutch.v>0.75 ? "disengaged" : cap>1 && slip>RAD(40) ? "slipping" : "engaged";
   el("vClutch").textContent = cs+" · "+Math.round(cap)+" N·m";
   el("chipClutch").classList.toggle("warn", cs==="slipping" && slip>RAD(800));

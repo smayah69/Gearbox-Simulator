@@ -28,7 +28,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;justify-cont
 .actions{display:flex;flex-wrap:wrap;gap:8px}
 button{font:inherit;font-family:var(--font-display);font-weight:600;font-size:.95rem;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
 button:hover{border-color:var(--muted)}
-button:focus-visible,.pedal:focus-visible,#gate:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button:focus-visible,.pedal:focus-visible,.gate:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 button.primary.off{background:var(--surface);color:var(--ink);border-color:var(--line)}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
@@ -72,10 +72,11 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
 .pedal .lbl{font-family:var(--font-display);font-weight:600;font-size:.92rem}
 .pedal .val{font-family:var(--font-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .pedal kbd{font-family:var(--font-mono);font-size:.72rem;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 5px;color:var(--muted)}
-#clutchPedal{--pc:var(--input)} #brakePedal{--pc:var(--danger)} #throttlePedal{--pc:var(--ok)}
+#clutchPedal,#clutchMini{--pc:var(--input)} #brakePedal,#brakeMini{--pc:var(--danger)} #throttlePedal,#throttleMini{--pc:var(--ok)}
 .lever{display:grid;justify-items:center;gap:4px}
-#gate{width:190px;height:226px;touch-action:none;cursor:grab;border-radius:16px}
-#gate:active{cursor:grabbing}
+.gate{touch-action:none;cursor:grab;border-radius:16px}
+.gate:active{cursor:grabbing}
+#gate{width:190px;height:226px}
 .gearbig{font-family:var(--font-display);font-weight:700;font-size:1rem;color:var(--muted)}
 .gearbig strong{color:var(--accent);font-size:1.5rem;margin-left:4px}
 .help{display:grid;gap:8px;align-content:start;min-width:0;font-size:.9rem}
@@ -106,7 +107,7 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
 @media (prefers-reduced-motion:reduce){.gearspin{animation:none}}
 
 /* nitrous button (hold, or Shift) */
-.nos{width:190px;justify-content:space-between;gap:9px;margin-top:4px;touch-action:none;user-select:none;-webkit-user-select:none}
+.nos{width:100%;justify-content:space-between;gap:9px;touch-action:none;user-select:none;-webkit-user-select:none}
 .nos .nosTxt{color:var(--nitrous);font-weight:700;letter-spacing:.06em}
 .nos .nosBar{flex:1;height:8px;border-radius:9px;background:var(--line);overflow:hidden}
 .nos .nosBar i{display:block;height:100%;width:100%;background:var(--nitrous);border-radius:9px}
@@ -114,3 +115,19 @@ button.primary.off{background:var(--surface);color:var(--ink);border-color:var(-
 .nos.on{background:var(--nitrous);border-color:var(--nitrous);color:#fff}
 .nos.on .nosTxt,.nos.on kbd{color:#fff;border-color:rgba(255,255,255,.6)}
 .nos.on .nosBar{background:rgba(255,255,255,.35)} .nos.on .nosBar i{background:#fff}
+
+/* quick-controls strip at the top: mini pedals, mini lever, nitrous */
+.dash{padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.dash .pedals{gap:6px}
+.pedal.mini{width:46px;gap:3px;padding:2px}
+.pedal.mini .track{width:38px;height:84px;border-radius:11px}
+.pedal.mini .pad{height:22px;left:4px;right:4px;border-radius:8px;font-size:.72rem;box-shadow:0 3px 0 color-mix(in srgb,var(--pc) 60%,#000 25%)}
+.pedal.mini .lbl{font-size:.72rem}
+.minilever{display:flex;align-items:center;gap:10px}
+#gateMini{width:80px;height:96px;border-radius:12px}
+.minilever .gearbig strong{font-size:1.9rem}
+.dash .nosbox{flex:1 1 220px;min-width:0;display:grid;gap:4px}
+.dash .nosbox small{color:var(--muted);font-size:.78rem}
+.dash .nos{padding:10px 16px;font-size:1.05rem}
+.dash .nos .nosBar{height:12px}
+@media (max-width:620px){.dash{gap:10px}.minilever{gap:6px}.minilever .gearbig span{display:none}}

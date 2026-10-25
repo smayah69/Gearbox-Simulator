@@ -26,6 +26,22 @@
     </div>
   </header>
 
+  <section class="card dash" aria-label="Quick controls">
+    <div class="pedals">
+      <div class="pedal mini" id="clutchMini" role="slider" aria-label="Clutch pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">C</div></div><span class="lbl">Clutch</span></div>
+      <div class="pedal mini" id="brakeMini" role="slider" aria-label="Brake pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">B</div></div><span class="lbl">Brake</span></div>
+      <div class="pedal mini" id="throttleMini" role="slider" aria-label="Throttle pedal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"><div class="fill"></div><div class="pad">A</div></div><span class="lbl">Gas</span></div>
+    </div>
+    <div class="minilever">
+      <svg id="gateMini" class="gate" viewBox="0 0 200 240" role="application" aria-label="Mini gear lever. Drag the knob, or use keys 1 to 5, R and N."></svg>
+      <div class="gearbig"><span>Gear</span><strong id="gearMini">N</strong></div>
+    </div>
+    <div class="nosbox">
+      <button id="nosBtn" class="nos" type="button" aria-pressed="false" aria-label="Nitrous: hold for a boost (or hold Shift)"><span class="nosTxt">NOS</span><span class="nosBar"><i id="nosFill"></i></span><kbd>Shift</kbd></button>
+      <small>Hold with the throttle down. Refills when you let go.</small>
+    </div>
+  </section>
+
   <section class="card road" aria-label="Car on the road"><canvas id="road"></canvas></section>
 
   <div class="main">
@@ -89,10 +105,9 @@
     </div>
     <div class="lever">
       <h2>Gear lever</h2>
-      <svg id="gate" viewBox="0 0 200 240" tabindex="0" role="application" aria-label="H-pattern gear lever. Drag the knob, or use keys 1 to 5, R and N."></svg>
+      <svg id="gate" class="gate" viewBox="0 0 200 240" tabindex="0" role="application" aria-label="H-pattern gear lever. Drag the knob, or use keys 1 to 5, R and N."></svg>
       <div class="gearbig">Gear<strong id="gearTxt">N</strong></div>
       <div class="revhint" id="revHint"></div>
-      <button id="nosBtn" class="nos" type="button" aria-pressed="false" aria-label="Nitrous: hold for a boost (or hold Shift)"><span class="nosTxt">NOS</span><span class="nosBar"><i id="nosFill"></i></span><kbd>Shift</kbd></button>
     </div>
     <div class="tips">
       <div class="tip"><strong>Mouse only?</strong> Pedals act like sliders: drag the clutch down, move the lever, then drag the clutch back up slowly. Keyboard keys work at the same time.</div>
